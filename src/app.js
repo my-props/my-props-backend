@@ -3,6 +3,7 @@ const cors = require("cors");
 const playerRoutes = require("./routes/playerStatisticsRoutes");
 const teamRoutes = require("./routes/teamStatisticsRoute");
 const nextGames = require("./routes/gamesRoutes");
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 app.use(express.json());
