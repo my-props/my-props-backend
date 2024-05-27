@@ -2,9 +2,9 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 exports.register = async (req, res) => {
-    const { email, password } = req.body;
+    const userData = req.body;
     try {
-        const user = await User.create(email, password);
+        const user = await User.create(userData);
         res.status(201).json({ message: 'User created successfully', user });
     } catch (error) {
         console.error('Error creating user:', error);
