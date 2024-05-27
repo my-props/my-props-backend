@@ -6,3 +6,5 @@ my-props.exe
 
 # IDE-specific files
 .vscode
+
+node_modules

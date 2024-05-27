@@ -11,6 +11,7 @@ class User {
             const result = await pool.query(queryText, values);
             return result.rows[0];
         } catch (error) {
+            console.error('Error creating user:', error);
             throw error;
         }
     }
@@ -23,6 +24,7 @@ class User {
             const result = await pool.query(queryText, values);
             return result.rows[0];
         } catch (error) {
+            console.error('Error finding user:', error);
             throw error;
         }
     }
