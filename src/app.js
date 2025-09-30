@@ -6,14 +6,12 @@ const nextGames = require("./routes/gamesRoutes");
 const userRoutes = require('./routes/userRoutes');
 const healthCheckRoutes = require('./routes/healthCheck');
 
-// Load environment variables
 require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -22,7 +20,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Rotas
 app.use("/api", playerRoutes);
 app.use("/api", teamRoutes);
 app.use("/api", nextGames);

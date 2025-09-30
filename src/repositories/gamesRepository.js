@@ -1,13 +1,16 @@
-const db = require("../config/database");
+const { getPool } = require("../config/database");
 
 async function getNextGames() {
-  const query = `
-    select * from Game
-  `;
+  const query = `SELECT * FROM League`;
 
-  const { rows } = await db.query(query);
-
-  return rows;
+  try {
+    const pool = await getPool();
+    const result = await pool.request().query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting next games:', error);
+    throw error;
+  }
 }
 
-module.exports.getNextGames = getNextGames;
+module.exports = { getNextGames };
