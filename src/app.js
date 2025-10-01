@@ -6,6 +6,15 @@ const nextGames = require("./routes/gamesRoutes");
 const userRoutes = require('./routes/userRoutes');
 const healthCheckRoutes = require('./routes/healthCheck');
 
+// New routes
+const gameScoreRoutes = require('./routes/gameScoreRoutes');
+const gameStatsRoutes = require('./routes/gameStatsRoutes');
+const playerRoutesNew = require('./routes/playerRoutes');
+const playerStatsRoutes = require('./routes/playerStatsRoutes');
+const seasonRoutes = require('./routes/seasonRoutes');
+const teamRoutesNew = require('./routes/teamRoutes');
+const teamStatsRoutes = require('./routes/teamStatsRoutes');
+
 require("dotenv").config();
 
 const app = express();
@@ -25,6 +34,15 @@ app.use("/api", teamRoutes);
 app.use("/api", nextGames);
 app.use('/api/users', userRoutes);
 app.use('/api/health', healthCheckRoutes);
+
+// New route endpoints
+app.use('/api', gameScoreRoutes);
+app.use('/api', gameStatsRoutes);
+app.use('/api', playerRoutesNew);
+app.use('/api', playerStatsRoutes);
+app.use('/api', seasonRoutes);
+app.use('/api', teamRoutesNew);
+app.use('/api', teamStatsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

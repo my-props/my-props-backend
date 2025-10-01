@@ -1,7 +1,7 @@
 const { getPool } = require("../config/database");
 
 async function getNextGames() {
-  const query = `SELECT * FROM League`;
+  const query = `SELECT * FROM Game`;
 
   try {
     const pool = await getPool();
