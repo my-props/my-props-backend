@@ -1,186 +1,287 @@
-# My Props Backend
+# My Props Backend API
 
-A Node.js backend API for managing sports statistics, games, and user authentication. This application provides endpoints for retrieving upcoming games, player statistics, team statistics, and user management.
+A Node.js backend API for managing sports statistics, games, and team data. This API provides comprehensive endpoints for retrieving team statistics, game data, and player information.
 
-## 🏗️ Project Structure
+## 🚀 Quick Start
 
-```
-my-props-backend/
-├── src/
-│   ├── app.js                 # Main application entry point
-│   ├── config/
-│   │   └── database.js        # PostgreSQL database configuration
-│   ├── controllers/
-│   │   └── userController.js  # User authentication logic
-│   ├── models/
-│   │   └── User.js           # User data model
-│   ├── repositories/
-│   │   ├── gamesRepository.js
-│   │   ├── playerStatisticsRepository.js
-│   │   └── teamStatisticsRepository.js
-│   ├── routes/
-│   │   ├── gamesRoutes.js
-│   │   ├── playerStatisticsRoutes.js
-│   │   ├── teamStatisticsRoute.js
-│   │   └── userRoutes.js
-│   └── services/
-│       ├── gamesService.js
-│       ├── playerStatisticsService.js
-│       └── teamStatisticsService.js
-├── Dockerfile
-├── package.json
-└── package-lock.json
-```
+**Base URL:** `http://localhost:3000/api`
 
-## 🚀 Features
-
-- **User Management**: Registration, login, and user profile management
-- **Games API**: Retrieve upcoming games and match information
-- **Player Statistics**: Get player performance statistics against specific teams
-- **Team Statistics**: Access team performance data
-- **Database Integration**: PostgreSQL database with connection pooling
-- **Security**: Password hashing with bcryptjs
-- **CORS Support**: Cross-origin resource sharing enabled
-
-## 🛠️ Technologies Used
-
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **PostgreSQL** - Database
-- **bcryptjs** - Password hashing
-- **CORS** - Cross-origin resource sharing
-- **dotenv** - Environment variable management
-- **Docker** - Containerization
-
-## 📋 Prerequisites
-
-- Node.js (v14 or higher)
-- PostgreSQL database
-- npm or yarn package manager
-
-## 🔧 Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd my-props-backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file in the root directory with the following variables:
-```env
-DB_HOST=your_database_host
-DB_USER=your_database_user
-DB_PASS=your_database_password
-DB_NAME=your_database_name
-DB_PORT=5432
-PORT=3000
-```
-
-4. Start the application:
-```bash
-# Development mode
-npm run dev
-
-# Production mode
-npm start
-```
-
-## 🐳 Docker
-
-Build and run the application using Docker:
-
-```bash
-# Build the Docker image
-docker build -t my-props-backend .
-
-# Run the container
-docker run -p 3000:3000 my-props-backend
-```
+**Health Check:** `http://localhost:3000/health`
 
 ## 📚 API Endpoints
 
-### User Management
-- `POST /api/users/register` - Register a new user
-- `POST /api/users/login` - User login
-- `GET /api/users/:email` - Get user by email
+### 🏥 Health Check
+- **GET** `/health` - Check if the server is running
+  - **Response:** Server status and timestamp
 
-### Games
-- `GET /api/games` - Get upcoming games (limited to 10)
+---
 
-### Player Statistics
-- `GET /api/player-match-statistics/:playerId/:teamId` - Get player statistics against a specific team
+### 👥 User Management
+- **POST** `/api/users/register` - Register a new user
+- **POST** `/api/users/login` - User login
+- **GET** `/api/users/:email` - Get user by email
 
-### Team Statistics
-- `GET /api/team-statistics` - Get team statistics
+---
 
-## 🗄️ Database Schema
+### 🏀 Team Statistics
 
-The application expects the following database tables:
+#### Get All Team Statistics
+- **GET** `/api/team-stats`
+  - **Description:** Retrieve all team statistics
+  - **Response:** Array of team statistics with all fields
 
-### Users Table
-- `id` - Primary key
-- `email` - User email (unique)
-- `password` - Hashed password
-- `first_name` - User's first name
-- `last_name` - User's last name
-- `phone_number` - Contact number
-- `address_line1` - Primary address
-- `address_line2` - Secondary address
-- `city` - City
-- `state` - State/Province
-- `postal_code` - ZIP/Postal code
-- `country` - Country
-- `created_at` - Timestamp
+#### Get Team Statistics by ID
+- **GET** `/api/team-stats/:id`
+  - **Description:** Get specific team statistics by ID
+  - **Parameters:** `id` (team stats ID)
+  - **Response:** Single team statistics object
 
-### Games Table
-- `id` - Primary key
-- `status` - Game status
-- `visitor_name` - Visiting team name
-- `visitor_id` - Visiting team ID
-- `home_id` - Home team ID
-- `home_name` - Home team name
-- `date_start` - Game start date
+#### Get Team Statistics by Team ID
+- **GET** `/api/teams/:teamId/team-stats`
+  - **Description:** Get all statistics for a specific team
+  - **Parameters:** `teamId` (team ID)
+  - **Response:** Array of team statistics for the specified team
 
-## 🔒 Security Features
+#### Get Team Statistics by Season
+- **GET** `/api/seasons/:seasonId/team-stats`
+  - **Description:** Get team statistics for a specific season
+  - **Parameters:** `seasonId` (season ID)
+  - **Response:** Array of team statistics for the specified season
 
-- Password hashing using bcryptjs with salt rounds of 10
-- Input validation and error handling
-- SQL injection prevention through parameterized queries
-- CORS configuration for cross-origin requests
+#### Get Team Statistics by Game
+- **GET** `/api/games/:gameId/team-stats`
+  - **Description:** Get team statistics for a specific game
+  - **Parameters:** `gameId` (game ID)
+  - **Response:** Array of team statistics for the specified game
 
-## 🚦 Running the Application
+---
 
-The application runs on port 3000 by default. You can change this by setting the `PORT` environment variable.
+### 📊 Team Statistics Aggregation
 
-```bash
-# Default port
-http://localhost:3000
+#### Get Team Statistics Sum (Single Team)
+- **GET** `/api/teams/:teamId/stats/sum`
+  - **Description:** Get aggregated statistics for a single team
+  - **Parameters:** `teamId` (team ID)
+  - **Response:** 
+    ```json
+    {
+      "TeamId": 1,
+      "TotalPointsSum": 2500,
+      "GameCount": 10,
+      "AveragePoints": 250.0,
+      "MaxPoints": 300,
+      "MinPoints": 200,
+      "MedianTotalPoints": 245.0,
+      "MedianFastBreakPoints": 12.0,
+      "MedianPointsInPaint": 42.0,
+      "MedianSecondChancePoints": 8.0,
+      "MedianPointsOffTurnovers": 15.0,
+      "MedianFieldGoalsMade": 35.0,
+      "MedianFieldGoalsAttempted": 78.0,
+      "MedianFreeThrowsMade": 18.0,
+      "MedianFreeThrowsAttempted": 22.0,
+      "MedianThreePointShotsMade": 7.0,
+      "MedianThreePointShotsAttempted": 25.0,
+      "MedianOffensiveRebounds": 12.0,
+      "MedianDefensiveRebounds": 28.0,
+      "MedianTotalRebounds": 40.0,
+      "MedianAssists": 22.0,
+      "MedianPersonalFouls": 18.0,
+      "MedianSteals": 8.0,
+      "MedianTurnovers": 14.0,
+      "MedianBlocks": 4.0
+    }
+    ```
 
-# Custom port
-PORT=8080 npm start
+#### Get Team Statistics Sum (Multiple Teams)
+- **GET** `/api/teams/stats/sum?teamIds=1,7,3`
+  - **Description:** Get aggregated statistics for multiple teams
+  - **Query Parameters:** `teamIds` (comma-separated team IDs)
+  - **Response:** Array of team statistics objects (same format as single team)
+
+---
+
+### 🎮 Game Statistics
+
+#### Get Game Statistics by Teams and Game
+- **GET** `/api/games/:gameId/teams/stats?teamIds=1,7`
+  - **Description:** Get detailed game statistics for specific teams in a specific game
+  - **Parameters:** 
+    - `gameId` (game ID)
+    - `teamIds` (comma-separated team IDs in query parameter)
+  - **Response:**
+    ```json
+    [
+      {
+        "GameId": 17,
+        "TeamId": 1,
+        "TotalPoints": 95,
+        "FastBreakPoints": 12,
+        "PointsInPaint": 42,
+        "SecondChancePoints": 8,
+        "PointsOffTurnovers": 15,
+        "FieldGoalsMade": 35,
+        "FieldGoalsAttempted": 78,
+        "FreeThrowsMade": 18,
+        "FreeThrowsAttempted": 22,
+        "ThreePointShotsMade": 7,
+        "ThreePointShotsAttempted": 25,
+        "OffensiveRebounds": 12,
+        "DefensiveRebounds": 28,
+        "TotalRebounds": 40,
+        "Assists": 22,
+        "PersonalFouls": 18,
+        "Steals": 8,
+        "Turnovers": 14,
+        "Blocks": 4,
+        "BiggestLead": 15,
+        "LongestRun": 8
+      }
+    ]
+    ```
+
+#### Get Team Statistics Against All Opponents
+- **GET** `/api/teams/:teamId/opponents/stats`
+  - **Description:** Get team statistics against all opponents they've played
+  - **Parameters:** `teamId` (team ID)
+  - **Response:** Array of game statistics with opponent information
+    ```json
+    [
+      {
+        "TeamId": 1,
+        "GameId": 17,
+        "TeamHomeId": 1,
+        "TeamVisitorId": 7,
+        "OpponentTeamId": 7,
+        "TotalPoints": 95,
+        "FastBreakPoints": 12,
+        "PointsInPaint": 42,
+        "SecondChancePoints": 8,
+        "PointsOffTurnovers": 15,
+        "FieldGoalsMade": 35,
+        "FieldGoalsAttempted": 78,
+        "FreeThrowsMade": 18,
+        "FreeThrowsAttempted": 22,
+        "ThreePointShotsMade": 7,
+        "ThreePointShotsAttempted": 25,
+        "OffensiveRebounds": 12,
+        "DefensiveRebounds": 28,
+        "TotalRebounds": 40,
+        "Assists": 22,
+        "PersonalFouls": 18,
+        "Steals": 8,
+        "Turnovers": 14,
+        "Blocks": 4,
+        "BiggestLead": 15,
+        "LongestRun": 8,
+        "OpponentTeamName": "Lakers",
+        "OpponentTeamNickName": "LAL"
+      }
+    ]
+    ```
+
+---
+
+## 🧪 Postman Collection Examples
+
+### Example 1: Get Team Statistics for Teams 1 and 7
+```
+GET http://localhost:3000/api/teams/stats/sum?teamIds=1,7
 ```
 
-## 📝 Development
-
-For development, use the `dev` script which runs the application with nodemon for automatic restarts:
-
-```bash
-npm run dev
+### Example 2: Get Game Statistics for Teams 1 and 7 in Game 17
+```
+GET http://localhost:3000/api/games/17/teams/stats?teamIds=1,7
 ```
 
-## 🤝 Contributing
+### Example 3: Get Team 1's Performance Against All Opponents
+```
+GET http://localhost:3000/api/teams/1/opponents/stats
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test your changes
-5. Submit a pull request
+### Example 4: Get Team 1's Aggregated Statistics
+```
+GET http://localhost:3000/api/teams/1/stats/sum
+```
 
-## 📄 License
+---
 
-This project is licensed under the ISC License.
+## 📋 Response Status Codes
+
+- **200** - Success
+- **400** - Bad Request (invalid parameters or data)
+- **404** - Not Found (resource doesn't exist)
+- **500** - Internal Server Error
+
+---
+
+## 🔧 Error Response Format
+
+```json
+{
+  "error": "Error message description"
+}
+```
+
+---
+
+## 🚀 Getting Started
+
+1. **Start the server:**
+   ```bash
+   npm start
+   ```
+
+2. **Test the health endpoint:**
+   ```
+   GET http://localhost:3000/health
+   ```
+
+3. **Import these endpoints into Postman:**
+   - Create a new collection
+   - Add each endpoint as a new request
+   - Use the base URL: `http://localhost:3000/api`
+
+---
+
+## 📊 Available Statistics Fields
+
+- **TotalPoints** - Total points scored
+- **FastBreakPoints** - Points from fast breaks
+- **PointsInPaint** - Points scored in the paint
+- **SecondChancePoints** - Points from second chance opportunities
+- **PointsOffTurnovers** - Points scored off opponent turnovers
+- **FieldGoalsMade/Attempted** - Field goal statistics
+- **FreeThrowsMade/Attempted** - Free throw statistics
+- **ThreePointShotsMade/Attempted** - Three-point shot statistics
+- **OffensiveRebounds** - Offensive rebounds
+- **DefensiveRebounds** - Defensive rebounds
+- **TotalRebounds** - Total rebounds
+- **Assists** - Assists
+- **PersonalFouls** - Personal fouls
+- **Steals** - Steals
+- **Turnovers** - Turnovers
+- **Blocks** - Blocks
+- **BiggestLead** - Biggest lead in the game
+- **LongestRun** - Longest scoring run
+
+---
+
+## 🎯 Quick Test Examples
+
+**Test Team Statistics:**
+```
+GET http://localhost:3000/api/teams/stats/sum?teamIds=1,7
+```
+
+**Test Game Statistics:**
+```
+GET http://localhost:3000/api/games/17/teams/stats?teamIds=1,7
+```
+
+**Test Health Check:**
+```
+GET http://localhost:3000/health
+```
+
+All endpoints return JSON responses and include comprehensive error handling with detailed error messages.
