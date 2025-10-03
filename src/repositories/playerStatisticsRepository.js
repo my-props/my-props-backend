@@ -3,8 +3,42 @@ const errorLogService = require("../services/errorLogService");
 
 async function getPlayerVsTeamStatistics(playerId, teamId) {
     const query = `
-  
-  `;
+        SELECT 
+            PlayerId,
+            PlayerFirstName,
+            PlayerLastName,
+            PlayerPosition,
+            EnemyTeamId,
+            EnemyTeamName,
+            EnemyTeamNickName,
+            SeasonId,
+            SeasonYear,
+            AveragePoints,
+            AverageRebounds,
+            AverageAssists,
+            AverageSteals,
+            AverageBlocks,
+            AverageTurnovers,
+            AverageFieldGoalsMade,
+            AverageFieldGoalsAttempted,
+            AverageThreePointShotsMade,
+            AverageThreePointShotsAttempted,
+            AverageFreeThrowsMade,
+            AverageFreeThrowsAttempted,
+            AveragePersonalFouls,
+            AveragePlusMinus,
+            MaxPoints,
+            MinPoints,
+            GamesPlayed,
+            GamesOver20Points,
+            GamesOver30Points,
+            GamesOver40Points,
+            LastUpdated
+        FROM PlayerVsTeamStats
+        WHERE PlayerId = @playerId 
+          AND EnemyTeamId = @teamId
+        ORDER BY SeasonYear DESC, LastUpdated DESC
+    `;
 
     try {
         const pool = await getPool();
@@ -24,61 +58,55 @@ async function getPlayerVsTeamStatistics(playerId, teamId) {
 async function getPlayerVsPlayerStatistics(playerId1, playerId2) {
     const query = `
         SELECT 
-            ps1.PlayerId as Player1Id,
-            p1.FirstName as Player1FirstName,
-            p1.LastName as Player1LastName,
-            p1.Position as Player1Position,
-            ps1.TotalPoints as Player1TotalPoints,
-            ps1.FieldGoalsMade as Player1FieldGoalsMade,
-            ps1.FieldGoalsAttempted as Player1FieldGoalsAttempted,
-            ps1.ThreePointShotsMade as Player1ThreePointShotsMade,
-            ps1.ThreePointShotsAttempted as Player1ThreePointShotsAttempted,
-            ps1.FreeThrowsMade as Player1FreeThrowsMade,
-            ps1.FreeThrowsAttempted as Player1FreeThrowsAttempted,
-            ps1.TotalRebounds as Player1TotalRebounds,
-            ps1.Assists as Player1Assists,
-            ps1.Steals as Player1Steals,
-            ps1.Blocks as Player1Blocks,
-            ps1.Turnovers as Player1Turnovers,
-            ps1.PersonalFouls as Player1PersonalFouls,
-            ps1.PlusMinus as Player1PlusMinus,
-            ps1.MinutesPlayed as Player1MinutesPlayed,
-            ps2.PlayerId as Player2Id,
-            p2.FirstName as Player2FirstName,
-            p2.LastName as Player2LastName,
-            p2.Position as Player2Position,
-            ps2.TotalPoints as Player2TotalPoints,
-            ps2.FieldGoalsMade as Player2FieldGoalsMade,
-            ps2.FieldGoalsAttempted as Player2FieldGoalsAttempted,
-            ps2.ThreePointShotsMade as Player2ThreePointShotsMade,
-            ps2.ThreePointShotsAttempted as Player2ThreePointShotsAttempted,
-            ps2.FreeThrowsMade as Player2FreeThrowsMade,
-            ps2.FreeThrowsAttempted as Player2FreeThrowsAttempted,
-            ps2.TotalRebounds as Player2TotalRebounds,
-            ps2.Assists as Player2Assists,
-            ps2.Steals as Player2Steals,
-            ps2.Blocks as Player2Blocks,
-            ps2.Turnovers as Player2Turnovers,
-            ps2.PersonalFouls as Player2PersonalFouls,
-            ps2.PlusMinus as Player2PlusMinus,
-            ps2.MinutesPlayed as Player2MinutesPlayed,
-            g.Id as GameId,
-            g.StartDate as GameDate,
-            t1.Name as Player1TeamName,
-            t2.Name as Player2TeamName
-        FROM PlayerStats ps1
-        INNER JOIN Player p1 ON ps1.PlayerId = p1.Id
-        INNER JOIN PlayerStats ps2 ON ps1.GameId = ps2.GameId AND ps1.PlayerId != ps2.PlayerId
-        INNER JOIN Player p2 ON ps2.PlayerId = p2.Id
-        INNER JOIN Game g ON ps1.GameId = g.Id
-        INNER JOIN Team t1 ON ps1.TeamId = t1.Id
-        INNER JOIN Team t2 ON ps2.TeamId = t2.Id
-        WHERE ps1.PlayerId = @playerId1 
-            AND ps2.PlayerId = @playerId2
-            AND ps1.Active = 1 
-            AND ps2.Active = 1
-            AND g.Active = 1
-        ORDER BY g.StartDate DESC
+            Player1Id,
+            Player1FirstName,
+            Player1LastName,
+            Player1Position,
+            Player1TotalPoints,
+            Player1FieldGoalsMade,
+            Player1FieldGoalsAttempted,
+            Player1ThreePointShotsMade,
+            Player1ThreePointShotsAttempted,
+            Player1FreeThrowsMade,
+            Player1FreeThrowsAttempted,
+            Player1TotalRebounds,
+            Player1Assists,
+            Player1Steals,
+            Player1Blocks,
+            Player1Turnovers,
+            Player1PersonalFouls,
+            Player1PlusMinus,
+            Player1MinutesPlayed,
+            Player2Id,
+            Player2FirstName,
+            Player2LastName,
+            Player2Position,
+            Player2TotalPoints,
+            Player2FieldGoalsMade,
+            Player2FieldGoalsAttempted,
+            Player2ThreePointShotsMade,
+            Player2ThreePointShotsAttempted,
+            Player2FreeThrowsMade,
+            Player2FreeThrowsAttempted,
+            Player2TotalRebounds,
+            Player2Assists,
+            Player2Steals,
+            Player2Blocks,
+            Player2Turnovers,
+            Player2PersonalFouls,
+            Player2PlusMinus,
+            Player2MinutesPlayed,
+            GameId,
+            GameDate,
+            Player1TeamName,
+            Player2TeamName,
+            SeasonId,
+            SeasonYear,
+            LastUpdated
+        FROM PlayerVsPlayerStats
+        WHERE (Player1Id = @playerId1 AND Player2Id = @playerId2)
+           OR (Player1Id = @playerId2 AND Player2Id = @playerId1)
+        ORDER BY GameDate DESC
     `;
 
     try {
@@ -99,46 +127,33 @@ async function getPlayerVsPlayerStatistics(playerId1, playerId2) {
 async function getPlayerVsAllTeamsStatistics(playerId, seasonId = null) {
     const query = `
         SELECT
-            CASE
-                WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
-                ELSE G.TeamHomeId
-            END AS EnemyTeamId,
-            T.Name AS EnemyTeamName,
-            T.NickName AS EnemyTeamNickName,
-            AVG(CAST(PS.TotalPoints AS FLOAT)) AS AveragePoints,
-            AVG(CAST(PS.TotalRebounds AS FLOAT)) AS AverageRebounds,
-            AVG(CAST(PS.Assists AS FLOAT)) AS AverageAssists,
-            AVG(CAST(PS.Steals AS FLOAT)) AS AverageSteals,
-            AVG(CAST(PS.Blocks AS FLOAT)) AS AverageBlocks,
-            AVG(CAST(PS.Turnovers AS FLOAT)) AS AverageTurnovers,
-            AVG(CAST(PS.FieldGoalsMade AS FLOAT)) AS AverageFieldGoalsMade,
-            AVG(CAST(PS.FieldGoalsAttempted AS FLOAT)) AS AverageFieldGoalsAttempted,
-            AVG(CAST(PS.ThreePointShotsMade AS FLOAT)) AS AverageThreePointShotsMade,
-            AVG(CAST(PS.ThreePointShotsAttempted AS FLOAT)) AS AverageThreePointShotsAttempted,
-            AVG(CAST(PS.FreeThrowsMade AS FLOAT)) AS AverageFreeThrowsMade,
-            AVG(CAST(PS.FreeThrowsAttempted AS FLOAT)) AS AverageFreeThrowsAttempted,
-            MAX(PS.TotalPoints) AS MaxPoints,
-            MIN(PS.TotalPoints) AS MinPoints,
-            COUNT(*) AS GamesPlayed,
-            SUM(CASE WHEN PS.TotalPoints > 20 THEN 1 ELSE 0 END) AS GamesOver20Points,
-            SUM(CASE WHEN PS.TotalPoints > 30 THEN 1 ELSE 0 END) AS GamesOver30Points
-        FROM PlayerStats PS
-        INNER JOIN Game G ON PS.GameId = G.Id
-        INNER JOIN Team T ON T.Id = CASE
-                     WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
-                     ELSE G.TeamHomeId
-                  END
-        WHERE PS.PlayerId = @playerId
-          AND PS.Active = 1
-          AND G.Active = 1
-          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
-        GROUP BY
-            CASE
-                WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
-                ELSE G.TeamHomeId
-            END,
-            T.Name,
-            T.NickName
+            EnemyTeamId,
+            EnemyTeamName,
+            EnemyTeamNickName,
+            SeasonId,
+            SeasonYear,
+            AveragePoints,
+            AverageRebounds,
+            AverageAssists,
+            AverageSteals,
+            AverageBlocks,
+            AverageTurnovers,
+            AverageFieldGoalsMade,
+            AverageFieldGoalsAttempted,
+            AverageThreePointShotsMade,
+            AverageThreePointShotsAttempted,
+            AverageFreeThrowsMade,
+            AverageFreeThrowsAttempted,
+            MaxPoints,
+            MinPoints,
+            GamesPlayed,
+            GamesOver20Points,
+            GamesOver30Points,
+            GamesOver40Points,
+            LastUpdated
+        FROM PlayerVsTeamStats
+        WHERE PlayerId = @playerId
+          ${seasonId ? 'AND SeasonId = @seasonId' : ''}
         ORDER BY AveragePoints DESC
     `;
 

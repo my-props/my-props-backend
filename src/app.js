@@ -14,6 +14,7 @@ const playerStatsRoutes = require('./routes/playerStatsRoutes');
 const seasonRoutes = require('./routes/seasonRoutes');
 const teamRoutesNew = require('./routes/teamRoutes');
 const teamStatsRoutes = require('./routes/teamStatsRoutes');
+const viewManagementRoutes = require('./routes/viewManagementRoutes');
 
 require("dotenv").config();
 
@@ -43,6 +44,7 @@ app.use('/api', playerStatsRoutes);
 app.use('/api', seasonRoutes);
 app.use('/api', teamRoutesNew);
 app.use('/api', teamStatsRoutes);
+app.use('/api/views', viewManagementRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
