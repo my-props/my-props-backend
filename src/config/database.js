@@ -1,10 +1,5 @@
 const sql = require("mssql")
 require("dotenv").config()
-console.log("User: " + process.env.DB_USER)
-console.log("Db Pass : " + process.env.DB_PASS)
-console.log("Host: " + process.env.DB_HOST)
-console.log("Port: " + process.env.DB_PORT)
-console.log("Database: " + process.env.DB_NAME)
 
 const config = {
   user: process.env.DB_USER,
