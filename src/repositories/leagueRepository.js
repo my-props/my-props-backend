@@ -1,4 +1,5 @@
 const { getPool } = require("../config/database");
+const errorLogService = require("../services/errorLogService");
 
 async function getLeagues() {
     const query = `SELECT * FROM League`;
@@ -9,6 +10,7 @@ async function getLeagues() {
         return result.recordset;
     } catch (error) {
         console.error('Error getting leagues:', error);
+        await errorLogService.logDatabaseError(error, 'leagueRepository.js', null, { function: 'getLeagues' });
         throw error;
     }
 }

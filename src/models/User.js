@@ -1,5 +1,6 @@
 const { getPool } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const errorLogService = require('../services/errorLogService');
 
 class User {
     static async create(userData) {
@@ -33,6 +34,7 @@ class User {
             return result.recordset[0];
         } catch (error) {
             console.error('Error creating user:', error);
+            await errorLogService.logDatabaseError(error, 'User.js', null, { function: 'create', userData });
             throw error;
         }
     }
@@ -49,6 +51,7 @@ class User {
             return result.recordset[0];
         } catch (error) {
             console.error('Error finding user:', error);
+            await errorLogService.logDatabaseError(error, 'User.js', null, { function: 'findByEmail', email });
             throw error;
         }
     }

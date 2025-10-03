@@ -1,4 +1,5 @@
 const playerStatsRepository = require("../repositories/playerStatsRepository");
+const errorLogService = require("./errorLogService");
 
 async function getAllPlayerStats() {
   try {
@@ -6,6 +7,7 @@ async function getAllPlayerStats() {
     return playerStats;
   } catch (error) {
     console.error('Error in playerStatsService.getAllPlayerStats:', error);
+    await errorLogService.logServiceError(error, 'playerStatsService.js', null, { function: 'getAllPlayerStats' });
     throw error;
   }
 }
@@ -25,6 +27,7 @@ async function getPlayerStatsById(id) {
     return playerStats;
   } catch (error) {
     console.error('Error in playerStatsService.getPlayerStatsById:', error);
+    await errorLogService.logServiceError(error, 'playerStatsService.js', null, { function: 'getPlayerStatsById', id });
     throw error;
   }
 }
@@ -39,6 +42,7 @@ async function getPlayerStatsByPlayerId(playerId) {
     return playerStats;
   } catch (error) {
     console.error('Error in playerStatsService.getPlayerStatsByPlayerId:', error);
+    await errorLogService.logServiceError(error, 'playerStatsService.js', null, { function: 'getPlayerStatsByPlayerId', playerId });
     throw error;
   }
 }
@@ -53,6 +57,7 @@ async function getPlayerStatsByGameId(gameId) {
     return playerStats;
   } catch (error) {
     console.error('Error in playerStatsService.getPlayerStatsByGameId:', error);
+    await errorLogService.logServiceError(error, 'playerStatsService.js', null, { function: 'getPlayerStatsByGameId', gameId });
     throw error;
   }
 }
@@ -67,6 +72,7 @@ async function getPlayerStatsBySeason(seasonId) {
     return playerStats;
   } catch (error) {
     console.error('Error in playerStatsService.getPlayerStatsBySeason:', error);
+    await errorLogService.logServiceError(error, 'playerStatsService.js', null, { function: 'getPlayerStatsBySeason', seasonId });
     throw error;
   }
 }

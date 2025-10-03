@@ -1,4 +1,5 @@
 const { getPool } = require("../config/database");
+const errorLogService = require("../services/errorLogService");
 
 async function getAllPlayerStats() {
   const query = `SELECT * FROM PlayerStats`;
@@ -9,6 +10,7 @@ async function getAllPlayerStats() {
     return result.recordset;
   } catch (error) {
     console.error('Error getting all player stats:', error);
+    await errorLogService.logDatabaseError(error, 'playerStatsRepository.js', null, { function: 'getAllPlayerStats' });
     throw error;
   }
 }
@@ -24,6 +26,7 @@ async function getPlayerStatsById(id) {
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting player stats by id:', error);
+    await errorLogService.logDatabaseError(error, 'playerStatsRepository.js', null, { function: 'getPlayerStatsById', id });
     throw error;
   }
 }
@@ -39,6 +42,7 @@ async function getPlayerStatsByPlayerId(playerId) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting player stats by player id:', error);
+    await errorLogService.logDatabaseError(error, 'playerStatsRepository.js', null, { function: 'getPlayerStatsByPlayerId', playerId });
     throw error;
   }
 }
@@ -54,6 +58,7 @@ async function getPlayerStatsByGameId(gameId) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting player stats by game id:', error);
+    await errorLogService.logDatabaseError(error, 'playerStatsRepository.js', null, { function: 'getPlayerStatsByGameId', gameId });
     throw error;
   }
 }
@@ -69,6 +74,7 @@ async function getPlayerStatsBySeason(seasonId) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting player stats by season:', error);
+    await errorLogService.logDatabaseError(error, 'playerStatsRepository.js', null, { function: 'getPlayerStatsBySeason', seasonId });
     throw error;
   }
 }

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const errorLogService = require('../services/errorLogService');
 
 exports.register = async (req, res) => {
     const userData = req.body;
@@ -8,6 +9,7 @@ exports.register = async (req, res) => {
         res.status(201).json({ message: 'User created successfully', user });
     } catch (error) {
         console.error('Error creating user:', error);
+        await errorLogService.logRouteError(error, 'userController.js', { function: 'register', userData });
         res.status(500).json({ message: 'Error creating user', error: error.message });
     }
 };
@@ -23,6 +25,7 @@ exports.login = async (req, res) => {
         }
     } catch (error) {
         console.error('Error logging in:', error);
+        await errorLogService.logRouteError(error, 'userController.js', { function: 'login', email });
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
@@ -38,6 +41,7 @@ exports.findUserByEmail = async (req, res) => {
         }
     } catch (error) {
         console.error('Error finding user:', error);
+        await errorLogService.logRouteError(error, 'userController.js', { function: 'findUserByEmail', email });
         res.status(500).json({ message: 'Error finding user', error: error.message });
     }
 };

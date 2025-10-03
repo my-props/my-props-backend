@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const playerStatisticsService = require("../services/playerStatisticsService");
+const errorLogService = require("../services/errorLogService");
 
 router.get("/player-match-statistics/:playerId/:teamId", async (req, res) => {
   try {
@@ -18,6 +19,7 @@ router.get("/player-match-statistics/:playerId/:teamId", async (req, res) => {
 
     res.status(200).json(data);
   } catch (error) {
+    await errorLogService.logRouteError(error, 'playerStatisticsRoutes.js', { route: '/player-match-statistics/:playerId/:teamId', method: 'GET', playerId, teamId });
     res.status(400).json({ error: error.message });
   }
 });

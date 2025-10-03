@@ -1,4 +1,5 @@
 const { getPool } = require("../config/database");
+const errorLogService = require("../services/errorLogService");
 
 async function getAllGameScores() {
     const query = `SELECT * FROM GameScore`;
@@ -9,6 +10,7 @@ async function getAllGameScores() {
         return result.recordset;
     } catch (error) {
         console.error('Error getting all game scores:', error);
+        await errorLogService.logDatabaseError(error, 'gameScoreRepository.js', null, { function: 'getAllGameScores' });
         throw error;
     }
 }
@@ -24,6 +26,7 @@ async function getGameScoreById(id) {
         return result.recordset[0];
     } catch (error) {
         console.error('Error getting game score by id:', error);
+        await errorLogService.logDatabaseError(error, 'gameScoreRepository.js', null, { function: 'getGameScoreById', id });
         throw error;
     }
 }
@@ -39,6 +42,7 @@ async function getGameScoresByGameId(gameId) {
         return result.recordset;
     } catch (error) {
         console.error('Error getting game scores by game id:', error);
+        await errorLogService.logDatabaseError(error, 'gameScoreRepository.js', null, { function: 'getGameScoresByGameId', gameId });
         throw error;
     }
 }

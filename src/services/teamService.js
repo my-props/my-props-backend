@@ -1,4 +1,5 @@
 const teamRepository = require("../repositories/teamRepository");
+const errorLogService = require("./errorLogService");
 
 async function getAllTeams() {
     try {
@@ -6,6 +7,7 @@ async function getAllTeams() {
         return teams;
     } catch (error) {
         console.error('Error in teamService.getAllTeams:', error);
+        await errorLogService.logServiceError(error, 'teamService.js', null, { function: 'getAllTeams' });
         throw error;
     }
 }
@@ -25,6 +27,7 @@ async function getTeamById(id) {
         return team;
     } catch (error) {
         console.error('Error in teamService.getTeamById:', error);
+        await errorLogService.logServiceError(error, 'teamService.js', null, { function: 'getTeamById', id });
         throw error;
     }
 }
@@ -39,6 +42,7 @@ async function getTeamsByLeagueId(leagueId) {
         return teams;
     } catch (error) {
         console.error('Error in teamService.getTeamsByLeagueId:', error);
+        await errorLogService.logServiceError(error, 'teamService.js', null, { function: 'getTeamsByLeagueId', leagueId });
         throw error;
     }
 }
@@ -53,6 +57,7 @@ async function getTeamsByCity(city) {
         return teams;
     } catch (error) {
         console.error('Error in teamService.getTeamsByCity:', error);
+        await errorLogService.logServiceError(error, 'teamService.js', null, { function: 'getTeamsByCity', city });
         throw error;
     }
 }

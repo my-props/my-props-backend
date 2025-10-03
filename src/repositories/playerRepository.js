@@ -1,4 +1,5 @@
 const { getPool } = require("../config/database");
+const errorLogService = require("../services/errorLogService");
 
 async function getAllPlayers() {
   const query = `SELECT * FROM Player`;
@@ -9,6 +10,7 @@ async function getAllPlayers() {
     return result.recordset;
   } catch (error) {
     console.error('Error getting all players:', error);
+    await errorLogService.logDatabaseError(error, 'playerRepository.js', null, { function: 'getAllPlayers' });
     throw error;
   }
 }
@@ -24,6 +26,7 @@ async function getPlayerById(id) {
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting player by id:', error);
+    await errorLogService.logDatabaseError(error, 'playerRepository.js', null, { function: 'getPlayerById', id });
     throw error;
   }
 }
@@ -39,6 +42,7 @@ async function getPlayersByTeamId(teamId) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting players by team id:', error);
+    await errorLogService.logDatabaseError(error, 'playerRepository.js', null, { function: 'getPlayersByTeamId', teamId });
     throw error;
   }
 }
@@ -54,6 +58,7 @@ async function getPlayersByPosition(position) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting players by position:', error);
+    await errorLogService.logDatabaseError(error, 'playerRepository.js', null, { function: 'getPlayersByPosition', position });
     throw error;
   }
 }

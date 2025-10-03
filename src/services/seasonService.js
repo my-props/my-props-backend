@@ -1,4 +1,5 @@
 const seasonRepository = require("../repositories/seasonRepository");
+const errorLogService = require("./errorLogService");
 
 async function getAllSeasons() {
   try {
@@ -6,6 +7,7 @@ async function getAllSeasons() {
     return seasons;
   } catch (error) {
     console.error('Error in seasonService.getAllSeasons:', error);
+    await errorLogService.logServiceError(error, 'seasonService.js', null, { function: 'getAllSeasons' });
     throw error;
   }
 }
@@ -25,6 +27,7 @@ async function getSeasonById(id) {
     return season;
   } catch (error) {
     console.error('Error in seasonService.getSeasonById:', error);
+    await errorLogService.logServiceError(error, 'seasonService.js', null, { function: 'getSeasonById', id });
     throw error;
   }
 }
@@ -40,6 +43,7 @@ async function getCurrentSeason() {
     return season;
   } catch (error) {
     console.error('Error in seasonService.getCurrentSeason:', error);
+    await errorLogService.logServiceError(error, 'seasonService.js', null, { function: 'getCurrentSeason' });
     throw error;
   }
 }
@@ -54,6 +58,7 @@ async function getSeasonsByYear(year) {
     return seasons;
   } catch (error) {
     console.error('Error in seasonService.getSeasonsByYear:', error);
+    await errorLogService.logServiceError(error, 'seasonService.js', null, { function: 'getSeasonsByYear', year });
     throw error;
   }
 }
