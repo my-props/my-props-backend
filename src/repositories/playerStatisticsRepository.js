@@ -1,5 +1,5 @@
-const { getPool } = require("../config/database");
-const errorLogService = require("../services/errorLogService");
+const { getPool } = require("../config/database")
+const errorLogService = require("../services/errorLogService")
 
 async function getPlayerVsTeamStatistics(playerId, teamId) {
     const query = `
@@ -40,19 +40,24 @@ async function getPlayerVsTeamStatistics(playerId, teamId) {
         ORDER BY SeasonYear DESC, LastUpdated DESC
     `;
 
-    try {
-        const pool = await getPool();
-        const request = pool.request();
-        request.input('playerId', playerId);
-        request.input('teamId', teamId);
+  try {
+    const pool = await getPool()
+    const request = pool.request()
+    request.input("playerId", playerId)
+    request.input("teamId", teamId)
 
-        const result = await request.query(query);
-        return result.recordset;
-    } catch (error) {
-        console.error('Error getting player vs team statistics:', error);
-        await errorLogService.logDatabaseError(error, 'playerStatisticsRepository.js', null, { function: 'getPlayerVsTeamStatistics', playerId, teamId });
-        throw error;
-    }
+    const result = await request.query(query)
+    return result.recordset
+  } catch (error) {
+    console.error("Error getting player vs team statistics:", error)
+    await errorLogService.logDatabaseError(
+      error,
+      "playerStatisticsRepository.js",
+      null,
+      { function: "getPlayerVsTeamStatistics", playerId, teamId }
+    )
+    throw error
+  }
 }
 
 async function getPlayerVsPlayerStatistics(playerId1, playerId2) {

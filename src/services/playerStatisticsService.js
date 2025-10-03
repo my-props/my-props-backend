@@ -1,22 +1,37 @@
-const playerStatisticsRepository = require("../repositories/playerStatisticsRepository");
-const errorLogService = require("./errorLogService");
+const playerStatisticsRepository = require("../repositories/playerStatisticsRepository")
+const errorLogService = require("./errorLogService")
 
 async function getPlayerVsTeamStatistics(playerId, teamId) {
   try {
+    if (!playerId) {
+      throw new Error("Player ID is required")
+    }
+    if (!teamId) {
+      throw new Error("Team ID is required")
+    }
+
     let rows = await playerStatisticsRepository.getPlayerVsTeamStatistics(
       playerId,
       teamId
-    );
+    )
 
     if (rows.length === 0) {
-      throw new Error("No matchup data found for the provided IDs");
+      throw new Error("No matchup data found for the provided IDs")
     }
 
-    return rows;
+    return rows
   } catch (error) {
-    console.error('Error in playerStatisticsService.getPlayerVsTeamStatistics:', error);
-    await errorLogService.logServiceError(error, 'playerStatisticsService.js', null, { function: 'getPlayerVsTeamStatistics', playerId, teamId });
-    throw error;
+    console.error(
+      "Error in playerStatisticsService.getPlayerVsTeamStatistics:",
+      error
+    )
+    await errorLogService.logServiceError(
+      error,
+      "playerStatisticsService.js",
+      null,
+      { function: "getPlayerVsTeamStatistics", playerId, teamId }
+    )
+    throw error
   }
 }
 
