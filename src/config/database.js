@@ -1,5 +1,10 @@
-const sql = require('mssql');
-require('dotenv').config();
+const sql = require("mssql")
+require("dotenv").config()
+console.log("User: " + process.env.DB_USER)
+console.log("Db Pass : " + process.env.DB_PASS)
+console.log("Host: " + process.env.DB_HOST)
+console.log("Port: " + process.env.DB_PORT)
+console.log("Database: " + process.env.DB_NAME)
 
 const config = {
   user: process.env.DB_USER,
@@ -9,18 +14,18 @@ const config = {
   database: process.env.DB_NAME,
   options: {
     encrypt: true,
-    trustServerCertificate: true
-  }
-};
+    trustServerCertificate: true,
+  },
+}
 
-let pool;
+let pool
 
 async function getPool() {
   if (!pool) {
-    pool = await sql.connect(config);
-    console.log('SQL connection pool created');
+    pool = await sql.connect(config)
+    console.log("SQL connection pool created")
   }
-  return pool;
+  return pool
 }
 
-module.exports = { getPool };
+module.exports = { getPool }
