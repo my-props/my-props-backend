@@ -1,4 +1,5 @@
 const { getPool } = require("../config/database");
+const errorLogService = require("../services/errorLogService");
 
 async function getAllSeasons() {
   const query = `SELECT * FROM Season`;
@@ -9,6 +10,7 @@ async function getAllSeasons() {
     return result.recordset;
   } catch (error) {
     console.error('Error getting all seasons:', error);
+    await errorLogService.logDatabaseError(error, 'seasonRepository.js', null, { function: 'getAllSeasons' });
     throw error;
   }
 }
@@ -24,6 +26,7 @@ async function getSeasonById(id) {
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting season by id:', error);
+    await errorLogService.logDatabaseError(error, 'seasonRepository.js', null, { function: 'getSeasonById', id });
     throw error;
   }
 }
@@ -37,6 +40,7 @@ async function getCurrentSeason() {
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting current season:', error);
+    await errorLogService.logDatabaseError(error, 'seasonRepository.js', null, { function: 'getCurrentSeason' });
     throw error;
   }
 }
@@ -52,6 +56,7 @@ async function getSeasonsByYear(year) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting seasons by year:', error);
+    await errorLogService.logDatabaseError(error, 'seasonRepository.js', null, { function: 'getSeasonsByYear', year });
     throw error;
   }
 }

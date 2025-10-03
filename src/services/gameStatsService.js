@@ -1,4 +1,5 @@
 const gameStatsRepository = require("../repositories/gameStatsRepository");
+const errorLogService = require("./errorLogService");
 
 async function getAllGameStats() {
   try {
@@ -6,6 +7,7 @@ async function getAllGameStats() {
     return gameStats;
   } catch (error) {
     console.error('Error in gameStatsService.getAllGameStats:', error);
+    await errorLogService.logServiceError(error, 'gameStatsService.js', null, { function: 'getAllGameStats' });
     throw error;
   }
 }
@@ -25,6 +27,7 @@ async function getGameStatsById(id) {
     return gameStats;
   } catch (error) {
     console.error('Error in gameStatsService.getGameStatsById:', error);
+    await errorLogService.logServiceError(error, 'gameStatsService.js', null, { function: 'getGameStatsById', id });
     throw error;
   }
 }
@@ -39,6 +42,7 @@ async function getGameStatsByGameId(gameId) {
     return gameStats;
   } catch (error) {
     console.error('Error in gameStatsService.getGameStatsByGameId:', error);
+    await errorLogService.logServiceError(error, 'gameStatsService.js', null, { function: 'getGameStatsByGameId', gameId });
     throw error;
   }
 }
