@@ -40,24 +40,24 @@ async function getPlayerVsTeamStatistics(playerId, teamId) {
         ORDER BY SeasonYear DESC, LastUpdated DESC
     `;
 
-  try {
-    const pool = await getPool()
-    const request = pool.request()
-    request.input("playerId", playerId)
-    request.input("teamId", teamId)
+    try {
+        const pool = await getPool()
+        const request = pool.request()
+        request.input("playerId", playerId)
+        request.input("teamId", teamId)
 
-    const result = await request.query(query)
-    return result.recordset
-  } catch (error) {
-    console.error("Error getting player vs team statistics:", error)
-    await errorLogService.logDatabaseError(
-      error,
-      "playerStatisticsRepository.js",
-      null,
-      { function: "getPlayerVsTeamStatistics", playerId, teamId }
-    )
-    throw error
-  }
+        const result = await request.query(query)
+        return result.recordset
+    } catch (error) {
+        console.error("Error getting player vs team statistics:", error)
+        await errorLogService.logDatabaseError(
+            error,
+            "playerStatisticsRepository.js",
+            null,
+            { function: "getPlayerVsTeamStatistics", playerId, teamId }
+        )
+        throw error
+    }
 }
 
 async function getPlayerVsPlayerStatistics(playerId1, playerId2) {
@@ -446,3 +446,177 @@ module.exports.getPlayerVsTeamDetailedStatistics = getPlayerVsTeamDetailedStatis
 module.exports.getPlayerVsPositionStatistics = getPlayerVsPositionStatistics;
 module.exports.getPlayerInPositionVsTeamStatistics = getPlayerInPositionVsTeamStatistics;
 module.exports.getPlayerInPositionVsAllTeamsStatistics = getPlayerInPositionVsAllTeamsStatistics;
+
+/**
+ * Unified player statistics query with flexible parameters
+ * @param {Object} params - Query parameters
+ * @param {number} params.playerId - Player ID (required)
+ * @param {number} [params.enemyTeamId] - Enemy team ID (optional)
+ * @param {string} [params.enemyPosition] - Enemy position (optional)
+ * @param {string} [params.playerPosition] - Player position (optional)
+ * @param {number} [params.seasonId] - Season ID (optional)
+ * @param {string} [params.queryType] - Type of query: 'vs-team', 'vs-position', 'vs-all-teams', 'in-position-vs-team', 'in-position-vs-all-teams', 'vs-player'
+ * @param {number} [params.playerId2] - Second player ID for vs-player queries
+ * @param {Array} [params.fields] - Array of fields to return (optional, defaults to all)
+ * @param {string} [params.groupBy] - Group by: 'team', 'position', 'game', 'season' (optional)
+ * @param {string} [params.orderBy] - Order by field (optional, defaults to 'AveragePoints')
+ * @param {string} [params.orderDirection] - Order direction: 'ASC' or 'DESC' (optional, defaults to 'DESC')
+ * @param {number} [params.limit] - Limit results (optional)
+ */
+async function getPlayerStatistics(params) {
+    const {
+        playerId,
+        enemyTeamId,
+        enemyPosition,
+        playerPosition,
+        seasonId,
+        queryType = 'vs-all-teams',
+        playerId2,
+        fields = [],
+        groupBy = 'team',
+        orderBy = 'AveragePoints',
+        orderDirection = 'DESC',
+        limit
+    } = params;
+
+    if (!playerId) {
+        throw new Error('Player ID is required');
+    }
+
+    // Default fields if none specified
+    const defaultFields = [
+        'PlayerId', 'PlayerFirstName', 'PlayerLastName', 'PlayerPosition',
+        'EnemyTeamId', 'EnemyTeamName', 'EnemyTeamNickName',
+        'SeasonId', 'SeasonYear', 'AveragePoints', 'AverageRebounds',
+        'AverageAssists', 'AverageSteals', 'AverageBlocks', 'AverageTurnovers',
+        'AverageFieldGoalsMade', 'AverageFieldGoalsAttempted',
+        'AverageThreePointShotsMade', 'AverageThreePointShotsAttempted',
+        'AverageFreeThrowsMade', 'AverageFreeThrowsAttempted',
+        'MaxPoints', 'MinPoints', 'GamesPlayed', 'GamesOver20Points',
+        'GamesOver30Points', 'GamesOver40Points', 'LastUpdated'
+    ];
+
+    const selectedFields = fields.length > 0 ? fields : defaultFields;
+    const fieldsString = selectedFields.join(', ');
+
+    let query = '';
+    let whereConditions = ['PlayerId = @playerId'];
+    let orderByClause = `ORDER BY ${orderBy} ${orderDirection}`;
+
+    // Build query based on query type
+    switch (queryType) {
+        case 'vs-team':
+            if (!enemyTeamId) {
+                throw new Error('Enemy team ID is required for vs-team query');
+            }
+            query = `SELECT ${fieldsString} FROM PlayerVsTeamStats`;
+            whereConditions.push('EnemyTeamId = @enemyTeamId');
+            break;
+
+        case 'vs-position':
+            if (!enemyPosition) {
+                throw new Error('Enemy position is required for vs-position query');
+            }
+            query = `SELECT ${fieldsString} FROM PlayerVsPositionStats`;
+            whereConditions.push('EnemyPosition = @enemyPosition');
+            break;
+
+        case 'vs-all-teams':
+            query = `SELECT ${fieldsString} FROM PlayerVsTeamStats`;
+            break;
+
+        case 'in-position-vs-team':
+            if (!enemyTeamId || !playerPosition) {
+                throw new Error('Enemy team ID and player position are required for in-position-vs-team query');
+            }
+            query = `SELECT ${fieldsString} FROM PlayerPositionStats`;
+            whereConditions.push('EnemyTeamId = @enemyTeamId');
+            whereConditions.push('PlayerPosition = @playerPosition');
+            break;
+
+        case 'in-position-vs-all-teams':
+            if (!playerPosition) {
+                throw new Error('Player position is required for in-position-vs-all-teams query');
+            }
+            query = `SELECT ${fieldsString} FROM PlayerPositionStats`;
+            whereConditions.push('PlayerPosition = @playerPosition');
+            break;
+
+        case 'vs-player':
+            if (!playerId2) {
+                throw new Error('Second player ID is required for vs-player query');
+            }
+            // For vs-player, we need to use the PlayerVsPlayerStats view
+            const vsPlayerFields = [
+                'Player1Id', 'Player1FirstName', 'Player1LastName', 'Player1Position',
+                'Player1TotalPoints', 'Player1TotalRebounds', 'Player1Assists',
+                'Player1Steals', 'Player1Blocks', 'Player1Turnovers',
+                'Player2Id', 'Player2FirstName', 'Player2LastName', 'Player2Position',
+                'Player2TotalPoints', 'Player2TotalRebounds', 'Player2Assists',
+                'Player2Steals', 'Player2Blocks', 'Player2Turnovers',
+                'GameId', 'GameDate', 'Player1TeamName', 'Player2TeamName',
+                'SeasonId', 'SeasonYear', 'LastUpdated'
+            ];
+            const vsPlayerFieldsString = vsPlayerFields.join(', ');
+            query = `SELECT ${vsPlayerFieldsString} FROM PlayerVsPlayerStats`;
+            whereConditions.push('(Player1Id = @playerId AND Player2Id = @playerId2) OR (Player1Id = @playerId2 AND Player2Id = @playerId)');
+            orderByClause = 'ORDER BY GameDate DESC';
+            break;
+
+        default:
+            throw new Error(`Invalid query type: ${queryType}`);
+    }
+
+    // Add season filter if provided
+    if (seasonId) {
+        whereConditions.push('SeasonId = @seasonId');
+    }
+
+    // Add group by if specified
+    if (groupBy && queryType !== 'vs-player') {
+        switch (groupBy) {
+            case 'team':
+                orderByClause = 'ORDER BY EnemyTeamName, ' + orderByClause.split('ORDER BY ')[1];
+                break;
+            case 'position':
+                orderByClause = 'ORDER BY PlayerPosition, ' + orderByClause.split('ORDER BY ')[1];
+                break;
+            case 'season':
+                orderByClause = 'ORDER BY SeasonYear DESC, ' + orderByClause.split('ORDER BY ')[1];
+                break;
+        }
+    }
+
+    // Add limit if specified
+    if (limit) {
+        orderByClause += ` OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY`;
+    }
+
+    const finalQuery = `${query} WHERE ${whereConditions.join(' AND ')} ${orderByClause}`;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        request.input('playerId', playerId);
+        if (enemyTeamId) request.input('enemyTeamId', enemyTeamId);
+        if (enemyPosition) request.input('enemyPosition', enemyPosition);
+        if (playerPosition) request.input('playerPosition', playerPosition);
+        if (seasonId) request.input('seasonId', seasonId);
+        if (playerId2) request.input('playerId2', playerId2);
+
+        const result = await request.query(finalQuery);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error getting unified player statistics:', error);
+        await errorLogService.logDatabaseError(
+            error,
+            'playerStatisticsRepository.js',
+            null,
+            { function: 'getPlayerStatistics', params }
+        );
+        throw error;
+    }
+}
+
+module.exports.getPlayerStatistics = getPlayerStatistics;
