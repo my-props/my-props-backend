@@ -244,7 +244,7 @@ class ViewManagementService {
             const query = `
                 SELECT 
                     TABLE_NAME as ViewName,
-                    CREATE_DATE as CreatedDate
+                    'View exists' as Status
                 FROM INFORMATION_SCHEMA.VIEWS
                 WHERE TABLE_NAME IN (
                     'PlayerVsTeamStats',

@@ -196,3 +196,25 @@ module.exports.getPlayerVsTeamDetailedStatistics = getPlayerVsTeamDetailedStatis
 module.exports.getPlayerVsPositionStatistics = getPlayerVsPositionStatistics;
 module.exports.getPlayerInPositionVsTeamStatistics = getPlayerInPositionVsTeamStatistics;
 module.exports.getPlayerInPositionVsAllTeamsStatistics = getPlayerInPositionVsAllTeamsStatistics;
+
+/**
+ * Unified player statistics service
+ * @param {Object} params - Query parameters
+ */
+async function getPlayerStatistics(params) {
+  try {
+    const data = await playerStatisticsRepository.getPlayerStatistics(params);
+    return data;
+  } catch (error) {
+    console.error('Error getting unified player statistics:', error);
+    await errorLogService.logServiceError(
+      error,
+      'playerStatisticsService.js',
+      null,
+      { function: 'getPlayerStatistics', params }
+    );
+    throw error;
+  }
+}
+
+module.exports.getPlayerStatistics = getPlayerStatistics;

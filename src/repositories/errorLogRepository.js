@@ -10,6 +10,7 @@ async function createErrorLog(errorData) {
       RequestData, 
       UserId, 
       Severity, 
+      Active,
       CreatedAt
     ) 
     VALUES (
@@ -20,6 +21,7 @@ async function createErrorLog(errorData) {
       @requestData, 
       @userId, 
       @severity, 
+      @active,
       @createdAt
     )
   `;
@@ -34,6 +36,7 @@ async function createErrorLog(errorData) {
       .input('requestData', errorData.requestData || null)
       .input('userId', errorData.userId || null)
       .input('severity', errorData.severity || 'ERROR')
+      .input('active', 1)
       .input('createdAt', new Date())
       .query(query);
     
