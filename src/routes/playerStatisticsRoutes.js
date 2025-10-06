@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const playerStatisticsService = require("../services/playerStatisticsService");
 const errorLogService = require("../services/errorLogService");
+const { asyncHandler } = require("../middleware/errorHandler");
 
 /**
  * Unified Player Statistics Endpoint
@@ -27,7 +28,7 @@ const errorLogService = require("../services/errorLogService");
  * @param {string} orderDirection - Order direction: 'ASC' or 'DESC' (optional, default: 'DESC')
  * @param {number} limit - Limit results (optional)
  */
-router.get("/player-stats", async (req, res) => {
+router.get("/player-stats", asyncHandler(async (req, res) => {
   try {
     const {
       playerId,
@@ -111,18 +112,15 @@ router.get("/player-stats", async (req, res) => {
         query: req.query
       }
     );
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    throw error; // Let the global error handler deal with it
   }
-});
+}));
 
 /**
  * Get available query types and their required parameters
  * GET /api/player-stats/query-types
  */
-router.get("/player-stats/query-types", async (req, res) => {
+router.get("/player-stats/query-types", asyncHandler(async (req, res) => {
   try {
     const queryTypes = {
       'vs-team': {
@@ -193,18 +191,15 @@ router.get("/player-stats/query-types", async (req, res) => {
         method: 'GET'
       }
     );
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    throw error; // Let the global error handler deal with it
   }
-});
+}));
 
 /**
  * Get field definitions and descriptions
  * GET /api/player-stats/fields
  */
-router.get("/player-stats/fields", async (req, res) => {
+router.get("/player-stats/fields", asyncHandler(async (req, res) => {
   try {
     const fieldDefinitions = {
       'PlayerId': 'Unique identifier for the player',
@@ -251,11 +246,8 @@ router.get("/player-stats/fields", async (req, res) => {
         method: 'GET'
       }
     );
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    throw error; // Let the global error handler deal with it
   }
-});
+}));
 
 module.exports = router;
