@@ -1,5 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
+const morgan = require("morgan");
+
+// Import middleware
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+
+// Import routes
 const playerRoutes = require("./routes/playerStatisticsRoutes");
 const teamRoutes = require("./routes/teamStatisticsRoute");
 const nextGames = require("./routes/gamesRoutes");
@@ -19,6 +26,10 @@ const viewManagementRoutes = require('./routes/viewManagementRoutes');
 require("dotenv").config();
 
 const app = express();
+
+// Basic middleware
+app.use(compression());
+app.use(morgan('combined'));
 app.use(express.json());
 app.use(cors());
 
@@ -45,6 +56,12 @@ app.use('/api', seasonRoutes);
 app.use('/api', teamRoutesNew);
 app.use('/api', teamStatsRoutes);
 app.use('/api/views', viewManagementRoutes);
+
+// 404 handler for undefined routes
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
