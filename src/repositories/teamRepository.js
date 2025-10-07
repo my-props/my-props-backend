@@ -2,8 +2,8 @@ const { getPool } = require("../config/database");
 const errorLogService = require("../services/errorLogService");
 
 async function getAllTeams() {
-  const query = `SELECT * FROM Team`;
-  
+  const query = `SELECT Id, Name from Team where Active = 1`;
+
   try {
     const pool = await getPool();
     const result = await pool.request().query(query);
@@ -17,7 +17,7 @@ async function getAllTeams() {
 
 async function getTeamById(id) {
   const query = `SELECT * FROM Team WHERE id = @id`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -33,7 +33,7 @@ async function getTeamById(id) {
 
 async function getTeamsByLeagueId(leagueId) {
   const query = `SELECT * FROM Team WHERE leagueId = @leagueId`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -49,7 +49,7 @@ async function getTeamsByLeagueId(leagueId) {
 
 async function getTeamsByCity(city) {
   const query = `SELECT * FROM Team WHERE city = @city`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()

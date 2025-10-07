@@ -4,7 +4,7 @@ const teamService = require("../services/teamService");
 const errorLogService = require("../services/errorLogService");
 
 // GET all teams
-router.get("/teams", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const data = await teamService.getAllTeams();
     res.status(200).json(data);

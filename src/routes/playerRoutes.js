@@ -4,7 +4,7 @@ const playerService = require("../services/playerService");
 const errorLogService = require("../services/errorLogService");
 
 // GET all players
-router.get("/players", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const data = await playerService.getAllPlayers();
     res.status(200).json(data);
@@ -14,6 +14,7 @@ router.get("/players", async (req, res) => {
   }
 });
 
+//TODO trocar por nome
 // GET player by ID
 router.get("/players/:id", async (req, res) => {
   try {
