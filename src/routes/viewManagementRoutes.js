@@ -14,9 +14,9 @@ router.post("/refresh-all", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/refresh-all', method: 'POST' });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -41,9 +41,9 @@ router.post("/refresh/:viewName", async (req, res) => {
         result = await viewManagementService.refreshPlayerVsPlayerStats();
         break;
       default:
-        return res.status(400).json({ 
-          success: false, 
-          error: "Invalid view name. Valid options: playervsteamstats, playerpositionstats, playervspositionstats, playervsplayerstats" 
+        return res.status(400).json({
+          success: false,
+          error: "Invalid view name. Valid options: playervsteamstats, playerpositionstats, playervspositionstats, playervsplayerstats"
         });
     }
 
@@ -54,9 +54,9 @@ router.post("/refresh/:viewName", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/refresh/:viewName', method: 'POST', viewName: req.params.viewName });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -68,9 +68,9 @@ router.post("/refresh-season/:seasonId", async (req, res) => {
     const seasonIdNum = parseInt(seasonId);
 
     if (isNaN(seasonIdNum)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid season ID. Must be a number." 
+      return res.status(400).json({
+        success: false,
+        error: "Invalid season ID. Must be a number."
       });
     }
 
@@ -82,9 +82,9 @@ router.post("/refresh-season/:seasonId", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/refresh-season/:seasonId', method: 'POST', seasonId: req.params.seasonId });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -93,11 +93,11 @@ router.post("/refresh-season/:seasonId", async (req, res) => {
 router.get("/refresh-log", async (req, res) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit) : 50;
-    
+
     if (isNaN(limit) || limit < 1 || limit > 1000) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid limit. Must be a number between 1 and 1000." 
+      return res.status(400).json({
+        success: false,
+        error: "Invalid limit. Must be a number between 1 and 1000."
       });
     }
 
@@ -108,9 +108,9 @@ router.get("/refresh-log", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/refresh-log', method: 'GET', limit: req.query.limit });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -120,11 +120,11 @@ router.get("/refresh-log/:viewName", async (req, res) => {
   try {
     const { viewName } = req.params;
     const limit = req.query.limit ? parseInt(req.query.limit) : 20;
-    
+
     if (isNaN(limit) || limit < 1 || limit > 1000) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid limit. Must be a number between 1 and 1000." 
+      return res.status(400).json({
+        success: false,
+        error: "Invalid limit. Must be a number between 1 and 1000."
       });
     }
 
@@ -135,9 +135,9 @@ router.get("/refresh-log/:viewName", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/refresh-log/:viewName', method: 'GET', viewName: req.params.viewName, limit: req.query.limit });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -152,9 +152,9 @@ router.get("/statistics", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/statistics', method: 'GET' });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -170,9 +170,9 @@ router.get("/check-views", async (req, res) => {
     });
   } catch (error) {
     await errorLogService.logRouteError(error, 'viewManagementRoutes.js', { route: '/check-views', method: 'GET' });
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

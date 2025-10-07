@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { POSITIONS } = require('../shared/constants/positions');
 
 /**
  * Validation middleware factory
@@ -65,13 +66,13 @@ const playerStatsSchemas = {
 
         enemyPosition: Joi.when('queryType', {
             is: 'vs-position',
-            then: Joi.string().valid('G', 'F', 'C', 'PG', 'SG', 'SF', 'PF', 'C').required(),
+            then: Joi.string().valid(...POSITIONS).required(),
             otherwise: Joi.string().optional()
         }),
 
         playerPosition: Joi.when('queryType', {
             is: Joi.string().valid('in-position-vs-team', 'in-position-vs-all-teams'),
-            then: Joi.string().valid('G', 'F', 'C', 'PG', 'SG', 'SF', 'PF', 'C').required(),
+            then: Joi.string().valid(...POSITIONS).required(),
             otherwise: Joi.string().optional()
         }),
 
