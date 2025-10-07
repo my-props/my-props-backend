@@ -29,10 +29,10 @@ const app = express()
 app.use(helmet())
 
 // CORS configuration
-// app.use(cors({
-//     origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-//     credentials: true
-// }));
+app.use(cors({
+    origin: '*',
+    credentials: true
+}));
 
 // Compression middleware
 app.use(compression())
@@ -46,14 +46,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: "OK",
-    message: "MyProps Backend is running",
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || "1.0.0",
-    environment: process.env.NODE_ENV || "development",
-  })
+    res.status(200).json({
+        success: true,
+        status: "OK",
+        message: "MyProps Backend is running",
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || "1.0.0",
+        environment: process.env.NODE_ENV || "development",
+    })
 })
 
 // API Routes - Organized by domain

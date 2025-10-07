@@ -32,12 +32,12 @@ async function getPlayerById(id) {
 }
 
 async function getPlayersByTeamId(teamId) {
-  const query = `SELECT * FROM Player WHERE teamId = @teamId`;
+  const query = `SELECT PLAYER_ID, FirstName, LastName FROM VW_PLAYER_CURRENT_TEAM WHERE TEAM_ID = @TEAM_ID`;
 
   try {
     const pool = await getPool();
     const result = await pool.request()
-      .input('teamId', teamId)
+      .input('TEAM_ID', teamId)
       .query(query);
     return result.recordset;
   } catch (error) {

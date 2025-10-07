@@ -17,6 +17,7 @@ router.get("/", async (req, res) => {
   }
 })
 
+//TODO trocar por nome
 // GET player by ID
 router.get("/:id", async (req, res) => {
   try {
