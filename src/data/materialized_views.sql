@@ -1,19 +1,18 @@
 -- =====================================================
--- MATERIALIZED VIEWS FOR PLAYER STATISTICS
+-- MATERIALIZED VIEWS FOR PLAYER STATISTICS (DBeaver Compatible)
 -- =====================================================
 -- This script creates materialized views to improve query performance
 -- for player statistics endpoints
-
-USE [MyProps]
-GO
+-- NOTE: This version fixes DBeaver compatibility issues
 
 -- =====================================================
 -- 1. PLAYER VS TEAM STATISTICS VIEW
 -- =====================================================
+-- Drop the view if it exists
 IF EXISTS (SELECT * FROM sys.views WHERE name = 'PlayerVsTeamStats')
-    DROP VIEW PlayerVsTeamStats
-GO
+    DROP VIEW PlayerVsTeamStats;
 
+-- Create the view
 CREATE VIEW PlayerVsTeamStats AS
 SELECT 
     PS.PlayerId,
@@ -70,16 +69,16 @@ GROUP BY
     T.Name,
     T.NickName,
     G.SeasonId,
-    S.Year
-GO
+    S.Year;
 
 -- =====================================================
 -- 2. PLAYER POSITION STATISTICS VIEW
 -- =====================================================
+-- Drop the view if it exists
 IF EXISTS (SELECT * FROM sys.views WHERE name = 'PlayerPositionStats')
-    DROP VIEW PlayerPositionStats
-GO
+    DROP VIEW PlayerPositionStats;
 
+-- Create the view
 CREATE VIEW PlayerPositionStats AS
 SELECT 
     PS.PlayerId,
@@ -136,16 +135,16 @@ GROUP BY
     T.Name,
     T.NickName,
     G.SeasonId,
-    S.Year
-GO
+    S.Year;
 
 -- =====================================================
 -- 3. PLAYER VS POSITION STATISTICS VIEW
 -- =====================================================
+-- Drop the view if it exists
 IF EXISTS (SELECT * FROM sys.views WHERE name = 'PlayerVsPositionStats')
-    DROP VIEW PlayerVsPositionStats
-GO
+    DROP VIEW PlayerVsPositionStats;
 
+-- Create the view
 CREATE VIEW PlayerVsPositionStats AS
 WITH PlayerGames AS (
     SELECT 
@@ -201,16 +200,16 @@ GROUP BY
     P.Position,
     O.Position,
     PG.SeasonId,
-    S.Year
-GO
+    S.Year;
 
 -- =====================================================
 -- 4. PLAYER VS PLAYER STATISTICS VIEW
 -- =====================================================
+-- Drop the view if it exists
 IF EXISTS (SELECT * FROM sys.views WHERE name = 'PlayerVsPlayerStats')
-    DROP VIEW PlayerVsPlayerStats
-GO
+    DROP VIEW PlayerVsPlayerStats;
 
+-- Create the view
 CREATE VIEW PlayerVsPlayerStats AS
 SELECT 
     PS1.PlayerId AS Player1Id,
@@ -270,68 +269,6 @@ WHERE PS1.Active = 1
   AND PS2.Active = 1 
   AND G.Active = 1 
   AND P1.Active = 1 
-  AND P2.Active = 1
-GO
+  AND P2.Active = 1;
 
--- =====================================================
--- CREATE INDEXES FOR BETTER PERFORMANCE
--- =====================================================
-
--- PlayerVsTeamStats indexes
-CREATE NONCLUSTERED INDEX IX_PlayerVsTeamStats_PlayerId 
-ON PlayerVsTeamStats(PlayerId)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsTeamStats_EnemyTeamId 
-ON PlayerVsTeamStats(EnemyTeamId)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsTeamStats_SeasonId 
-ON PlayerVsTeamStats(SeasonId)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsTeamStats_PlayerSeason 
-ON PlayerVsTeamStats(PlayerId, SeasonId)
-GO
-
--- PlayerPositionStats indexes
-CREATE NONCLUSTERED INDEX IX_PlayerPositionStats_PlayerId 
-ON PlayerPositionStats(PlayerId)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerPositionStats_Position 
-ON PlayerPositionStats(PlayerPosition)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerPositionStats_PlayerPosition 
-ON PlayerPositionStats(PlayerId, PlayerPosition)
-GO
-
--- PlayerVsPositionStats indexes
-CREATE NONCLUSTERED INDEX IX_PlayerVsPositionStats_PlayerId 
-ON PlayerVsPositionStats(PlayerId)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsPositionStats_EnemyPosition 
-ON PlayerVsPositionStats(EnemyPosition)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsPositionStats_PlayerEnemyPosition 
-ON PlayerVsPositionStats(PlayerId, EnemyPosition)
-GO
-
--- PlayerVsPlayerStats indexes
-CREATE NONCLUSTERED INDEX IX_PlayerVsPlayerStats_Player1Id 
-ON PlayerVsPlayerStats(Player1Id)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsPlayerStats_Player2Id 
-ON PlayerVsPlayerStats(Player2Id)
-GO
-
-CREATE NONCLUSTERED INDEX IX_PlayerVsPlayerStats_Players 
-ON PlayerVsPlayerStats(Player1Id, Player2Id)
-GO
-
-PRINT 'Materialized views created successfully!'
-GO
+PRINT 'Materialized views created successfully!';

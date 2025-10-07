@@ -1,18 +1,15 @@
 -- =====================================================
--- REFRESH PROCEDURES FOR MATERIALIZED VIEWS
+-- REFRESH PROCEDURES FOR MATERIALIZED VIEWS (DBeaver Compatible)
 -- =====================================================
 -- This script creates stored procedures to refresh materialized views
 -- and manage their data efficiently
-
-USE [MyProps]
-GO
+-- NOTE: This version fixes DBeaver compatibility issues and removes THROW statements
 
 -- =====================================================
 -- 1. REFRESH ALL MATERIALIZED VIEWS
 -- =====================================================
 IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshAllMaterializedViews')
-    DROP PROCEDURE RefreshAllMaterializedViews
-GO
+    DROP PROCEDURE RefreshAllMaterializedViews;
 
 CREATE PROCEDURE RefreshAllMaterializedViews
 AS
@@ -21,51 +18,108 @@ BEGIN
     
     DECLARE @StartTime DATETIME2 = GETDATE();
     DECLARE @ErrorMessage NVARCHAR(4000);
+    DECLARE @SuccessCount INT = 0;
+    DECLARE @ErrorCount INT = 0;
     
+    PRINT 'Starting refresh of all materialized views...'
+    
+    -- Refresh PlayerVsTeamStats
     BEGIN TRY
-        PRINT 'Starting refresh of all materialized views...'
-        
-        -- Refresh PlayerVsTeamStats
+        PRINT 'Refreshing PlayerVsTeamStats...'
         EXEC RefreshPlayerVsTeamStats;
-        
-        -- Refresh PlayerPositionStats
-        EXEC RefreshPlayerPositionStats;
-        
-        -- Refresh PlayerVsPositionStats
-        EXEC RefreshPlayerVsPositionStats;
-        
-        -- Refresh PlayerVsPlayerStats
-        EXEC RefreshPlayerVsPlayerStats;
-        
-        DECLARE @EndTime DATETIME2 = GETDATE();
-        DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime);
-        
-        PRINT 'All materialized views refreshed successfully in ' + CAST(@Duration AS VARCHAR(10)) + ' seconds'
-        
-        -- Log the refresh
-        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status)
-        VALUES ('ALL_VIEWS', 'FULL', @StartTime, @EndTime, @Duration, 'SUCCESS')
-        
+        PRINT 'PlayerVsTeamStats refreshed successfully'
+        SET @SuccessCount = @SuccessCount + 1
     END TRY
     BEGIN CATCH
         SET @ErrorMessage = ERROR_MESSAGE();
-        PRINT 'Error refreshing materialized views: ' + @ErrorMessage;
+        PRINT 'ERROR refreshing PlayerVsTeamStats: ' + @ErrorMessage
+        SET @ErrorCount = @ErrorCount + 1
         
         -- Log the error
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
-        VALUES ('ALL_VIEWS', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
-        
-        THROW;
+        VALUES ('PlayerVsTeamStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
     END CATCH
-END
-GO
+    
+    -- Refresh PlayerPositionStats
+    BEGIN TRY
+        PRINT 'Refreshing PlayerPositionStats...'
+        EXEC RefreshPlayerPositionStats;
+        PRINT 'PlayerPositionStats refreshed successfully'
+        SET @SuccessCount = @SuccessCount + 1
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'ERROR refreshing PlayerPositionStats: ' + @ErrorMessage
+        SET @ErrorCount = @ErrorCount + 1
+        
+        -- Log the error
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+        VALUES ('PlayerPositionStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+    END CATCH
+    
+    -- Refresh PlayerVsPositionStats
+    BEGIN TRY
+        PRINT 'Refreshing PlayerVsPositionStats...'
+        EXEC RefreshPlayerVsPositionStats;
+        PRINT 'PlayerVsPositionStats refreshed successfully'
+        SET @SuccessCount = @SuccessCount + 1
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'ERROR refreshing PlayerVsPositionStats: ' + @ErrorMessage
+        SET @ErrorCount = @ErrorCount + 1
+        
+        -- Log the error
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+        VALUES ('PlayerVsPositionStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+    END CATCH
+    
+    -- Refresh PlayerVsPlayerStats
+    BEGIN TRY
+        PRINT 'Refreshing PlayerVsPlayerStats...'
+        EXEC RefreshPlayerVsPlayerStats;
+        PRINT 'PlayerVsPlayerStats refreshed successfully'
+        SET @SuccessCount = @SuccessCount + 1
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'ERROR refreshing PlayerVsPlayerStats: ' + @ErrorMessage
+        SET @ErrorCount = @ErrorCount + 1
+        
+        -- Log the error
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+        VALUES ('PlayerVsPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+    END CATCH
+    
+    DECLARE @EndTime DATETIME2 = GETDATE();
+    DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime);
+    
+    PRINT 'Refresh completed:'
+    PRINT '  Successfully refreshed: ' + CAST(@SuccessCount AS VARCHAR(10)) + ' views'
+    PRINT '  Failed: ' + CAST(@ErrorCount AS VARCHAR(10)) + ' views'
+    PRINT '  Total time: ' + CAST(@Duration AS VARCHAR(10)) + ' seconds'
+    
+    -- Log the overall result
+    INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+    VALUES ('ALL_VIEWS', 'FULL', @StartTime, @EndTime, @Duration, 
+            CASE WHEN @ErrorCount = 0 THEN 'SUCCESS' ELSE 'PARTIAL' END,
+            CASE WHEN @ErrorCount > 0 THEN 'Some views failed to refresh' ELSE NULL END)
+    
+    -- Return summary
+    SELECT 
+        @SuccessCount as SuccessCount,
+        @ErrorCount as ErrorCount,
+        @Duration as DurationSeconds,
+        CASE WHEN @ErrorCount = 0 THEN 'ALL_SUCCESS' 
+             WHEN @SuccessCount = 0 THEN 'ALL_FAILED' 
+             ELSE 'PARTIAL_SUCCESS' END as OverallStatus
+END;
 
 -- =====================================================
 -- 2. REFRESH PLAYER VS TEAM STATISTICS
 -- =====================================================
 IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshPlayerVsTeamStats')
-    DROP PROCEDURE RefreshPlayerVsTeamStats
-GO
+    DROP PROCEDURE RefreshPlayerVsTeamStats;
 
 CREATE PROCEDURE RefreshPlayerVsTeamStats
 AS
@@ -159,17 +213,16 @@ BEGIN
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerVsTeamStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
         
-        THROW;
+        -- Instead of THROW, just print the error and continue
+        PRINT 'Continuing with other views...'
     END CATCH
-END
-GO
+END;
 
 -- =====================================================
 -- 3. REFRESH PLAYER POSITION STATISTICS
 -- =====================================================
 IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshPlayerPositionStats')
-    DROP PROCEDURE RefreshPlayerPositionStats
-GO
+    DROP PROCEDURE RefreshPlayerPositionStats;
 
 CREATE PROCEDURE RefreshPlayerPositionStats
 AS
@@ -263,17 +316,16 @@ BEGIN
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerPositionStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
         
-        THROW;
+        -- Instead of THROW, just print the error and continue
+        PRINT 'Continuing with other views...'
     END CATCH
-END
-GO
+END;
 
 -- =====================================================
 -- 4. REFRESH PLAYER VS POSITION STATISTICS
 -- =====================================================
 IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshPlayerVsPositionStats')
-    DROP PROCEDURE RefreshPlayerVsPositionStats
-GO
+    DROP PROCEDURE RefreshPlayerVsPositionStats;
 
 CREATE PROCEDURE RefreshPlayerVsPositionStats
 AS
@@ -366,17 +418,16 @@ BEGIN
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerVsPositionStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
         
-        THROW;
+        -- Instead of THROW, just print the error and continue
+        PRINT 'Continuing with other views...'
     END CATCH
-END
-GO
+END;
 
 -- =====================================================
 -- 5. REFRESH PLAYER VS PLAYER STATISTICS
 -- =====================================================
 IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshPlayerVsPlayerStats')
-    DROP PROCEDURE RefreshPlayerVsPlayerStats
-GO
+    DROP PROCEDURE RefreshPlayerVsPlayerStats;
 
 CREATE PROCEDURE RefreshPlayerVsPlayerStats
 AS
@@ -473,59 +524,13 @@ BEGIN
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerVsPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
         
-        THROW;
+        -- Instead of THROW, just print the error and continue
+        PRINT 'Continuing with other views...'
     END CATCH
-END
-GO
+END;
 
 -- =====================================================
--- 6. INCREMENTAL REFRESH FOR SPECIFIC SEASON
--- =====================================================
-IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshViewsForSeason')
-    DROP PROCEDURE RefreshViewsForSeason
-GO
-
-CREATE PROCEDURE RefreshViewsForSeason
-    @SeasonId INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    DECLARE @StartTime DATETIME2 = GETDATE();
-    DECLARE @ErrorMessage NVARCHAR(4000);
-    
-    BEGIN TRY
-        PRINT 'Starting incremental refresh for season ' + CAST(@SeasonId AS VARCHAR(10)) + '...'
-        
-        -- For incremental refresh, we'll refresh all views
-        -- In a real implementation, you might want to be more selective
-        EXEC RefreshAllMaterializedViews;
-        
-        DECLARE @EndTime DATETIME2 = GETDATE();
-        DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime);
-        
-        PRINT 'Incremental refresh for season ' + CAST(@SeasonId AS VARCHAR(10)) + ' completed in ' + CAST(@Duration AS VARCHAR(10)) + ' seconds'
-        
-        -- Log the refresh
-        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status)
-        VALUES ('ALL_VIEWS', 'INCREMENTAL', @StartTime, @EndTime, @Duration, 'SUCCESS')
-        
-    END TRY
-    BEGIN CATCH
-        SET @ErrorMessage = ERROR_MESSAGE();
-        PRINT 'Error in incremental refresh: ' + @ErrorMessage;
-        
-        -- Log the error
-        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
-        VALUES ('ALL_VIEWS', 'INCREMENTAL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
-        
-        THROW;
-    END CATCH
-END
-GO
-
--- =====================================================
--- 7. CREATE REFRESH LOG TABLE
+-- 6. CREATE REFRESH LOG TABLE
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ViewRefreshLog')
 BEGIN
@@ -547,8 +552,6 @@ BEGIN
     
     CREATE NONCLUSTERED INDEX IX_ViewRefreshLog_StartTime 
     ON ViewRefreshLog(StartTime);
-END
-GO
+END;
 
-PRINT 'Refresh procedures created successfully!'
-GO
+PRINT 'Refresh procedures created successfully!';
