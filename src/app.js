@@ -57,9 +57,10 @@ app.get("/health", (req, res) => {
 })
 
 // API Routes - Organized by domain
-app.use("/api/players", playerRoutes)
-app.use("/api/players", playerStatsRoutes)
+// Mount more specific routes first to avoid conflicts with generic /:id routes
 app.use("/api/players", playerStatisticsRoutes)
+app.use("/api/players", playerStatsRoutes)
+app.use("/api/players", playerRoutes)
 
 app.use("/api/teams", teamRoutes)
 app.use("/api/teams", teamStatsRoutes)

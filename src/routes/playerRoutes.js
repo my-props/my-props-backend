@@ -17,23 +17,6 @@ router.get("/", async (req, res) => {
   }
 })
 
-//TODO trocar por nome
-// GET player by ID
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params
-    const data = await playerService.getPlayerById(id)
-    res.status(200).json(data)
-  } catch (error) {
-    await errorLogService.logRouteError(error, "playerRoutes.js", {
-      route: "/players/:id",
-      method: "GET",
-      id,
-    })
-    res.status(400).json({ error: error.message })
-  }
-})
-
 // GET players by team ID
 router.get("/teams/:teamId/players", async (req, res) => {
   try {
@@ -61,6 +44,23 @@ router.get("/position/:position", async (req, res) => {
       route: "/players/position/:position",
       method: "GET",
       position,
+    })
+    res.status(400).json({ error: error.message })
+  }
+})
+
+//TODO trocar por nome
+// GET player by ID - This must be LAST to avoid conflicts with other routes
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params
+    const data = await playerService.getPlayerById(id)
+    res.status(200).json(data)
+  } catch (error) {
+    await errorLogService.logRouteError(error, "playerRoutes.js", {
+      route: "/players/:id",
+      method: "GET",
+      id,
     })
     res.status(400).json({ error: error.message })
   }
