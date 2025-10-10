@@ -179,6 +179,170 @@ GET /api/players/statistics?playerId=123&queryType=vs-player&playerId2=456
 
 ---
 
+## 🎮 Game-by-Game Statistics Endpoint
+
+### `GET /api/players/statistics/games`
+
+This endpoint returns individual game statistics instead of aggregated averages. Perfect for showing each game as a separate row in your table.
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `playerId` | integer | ✅ Yes | The ID of the player to get statistics for |
+| `enemyTeamId` | integer | ✅ Yes | The ID of the enemy team |
+| `seasonId` | integer | No | Season ID filter |
+| `arena` | string | No | Arena name filter (currently disabled - Arena column not available in database) |
+| `statType` | string | No | Stat type for over/under filter (TotalPoints, TotalRebounds, Assists, Steals, Blocks, Turnovers) |
+| `overValue` | number | No | Minimum value for stat filter |
+| `underValue` | number | No | Maximum value for stat filter |
+| `orderBy` | string | No | Field to order by (default: GameDate) |
+| `orderDirection` | string | No | Order direction: ASC or DESC (default: DESC) |
+| `limit` | integer | No | Limit number of results |
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `GameId` | integer | Unique game identifier |
+| `GameDate` | string | Date of the game |
+| `Arena` | string | Arena where the game was played (currently null - Arena column not available in database) |
+| `SeasonId` | integer | Season identifier |
+| `SeasonYear` | integer | Season year |
+| `TotalPoints` | number | Points scored in this game |
+| `TotalRebounds` | number | Rebounds in this game |
+| `Assists` | number | Assists in this game |
+| `Steals` | number | Steals in this game |
+| `Blocks` | number | Blocks in this game |
+| `Turnovers` | number | Turnovers in this game |
+| `FieldGoalsMade` | number | Field goals made |
+| `FieldGoalsAttempted` | number | Field goals attempted |
+| `FieldGoalPercentage` | string | Field goal percentage |
+| `ThreePointShotsMade` | number | 3-point shots made |
+| `ThreePointShotsAttempted` | number | 3-point shots attempted |
+| `ThreePointShotPercentage` | string | 3-point shot percentage |
+| `FreeThrowsMade` | number | Free throws made |
+| `FreeThrowsAttempted` | number | Free throws attempted |
+| `FreeThrowPercentage` | string | Free throw percentage |
+| `PersonalFouls` | number | Personal fouls |
+| `PlusMinus` | number | Plus/minus rating |
+| `MinutesPlayed` | string | Minutes played |
+| `PlayerPosition` | string | Player's position in this game |
+| `PlayerFirstName` | string | Player's first name |
+| `PlayerLastName` | string | Player's last name |
+| `EnemyTeamName` | string | Enemy team name |
+| `EnemyTeamNickName` | string | Enemy team nickname |
+| `GameLocation` | string | Home or Away |
+| `EnemyTeamId` | integer | Enemy team ID |
+
+#### Example Requests
+
+**1. Get LeBron James vs Lakers individual games:**
+```bash
+GET /api/players/statistics/games?playerId=265&enemyTeamId=11
+```
+
+**2. Filter by season:**
+```bash
+GET /api/players/statistics/games?playerId=265&enemyTeamId=11&seasonId=2024
+```
+
+**3. Filter games where player scored over 25 points:**
+```bash
+GET /api/players/statistics/games?playerId=265&enemyTeamId=11&statType=TotalPoints&overValue=25
+```
+
+**4. Get games with 20-30 points range:**
+```bash
+GET /api/players/statistics/games?playerId=265&enemyTeamId=11&statType=TotalPoints&overValue=20&underValue=30
+```
+
+**5. Order by points (ascending):**
+```bash
+GET /api/players/statistics/games?playerId=265&enemyTeamId=11&orderBy=TotalPoints&orderDirection=ASC
+```
+
+#### Example Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "GameId": 12345,
+      "GameDate": "2024-01-15T20:00:00.000Z",
+      "Arena": null,
+      "SeasonId": 2024,
+      "SeasonYear": 2024,
+      "TotalPoints": 28,
+      "TotalRebounds": 7,
+      "Assists": 9,
+      "Steals": 2,
+      "Blocks": 1,
+      "Turnovers": 3,
+      "FieldGoalsMade": 10,
+      "FieldGoalsAttempted": 18,
+      "FieldGoalPercentage": "55.6%",
+      "ThreePointShotsMade": 3,
+      "ThreePointShotsAttempted": 7,
+      "ThreePointShotPercentage": "42.9%",
+      "FreeThrowsMade": 5,
+      "FreeThrowsAttempted": 6,
+      "FreeThrowPercentage": "83.3%",
+      "PersonalFouls": 2,
+      "PlusMinus": 8,
+      "MinutesPlayed": "35:42",
+      "PlayerPosition": "SF",
+      "PlayerFirstName": "LeBron",
+      "PlayerLastName": "James",
+      "EnemyTeamName": "Golden State Warriors",
+      "EnemyTeamNickName": "Warriors",
+      "GameLocation": "Home",
+      "EnemyTeamId": 11
+    },
+    {
+      "GameId": 12346,
+      "GameDate": "2024-01-10T19:30:00.000Z",
+      "Arena": null,
+      "SeasonId": 2024,
+      "SeasonYear": 2024,
+      "TotalPoints": 32,
+      "TotalRebounds": 8,
+      "Assists": 7,
+      "Steals": 1,
+      "Blocks": 2,
+      "Turnovers": 2,
+      "FieldGoalsMade": 12,
+      "FieldGoalsAttempted": 20,
+      "FieldGoalPercentage": "60.0%",
+      "ThreePointShotsMade": 4,
+      "ThreePointShotsAttempted": 8,
+      "ThreePointShotPercentage": "50.0%",
+      "FreeThrowsMade": 4,
+      "FreeThrowsAttempted": 5,
+      "FreeThrowPercentage": "80.0%",
+      "PersonalFouls": 3,
+      "PlusMinus": 12,
+      "MinutesPlayed": "38:15",
+      "PlayerPosition": "SF",
+      "PlayerFirstName": "LeBron",
+      "PlayerLastName": "James",
+      "EnemyTeamName": "Golden State Warriors",
+      "EnemyTeamNickName": "Warriors",
+      "GameLocation": "Away",
+      "EnemyTeamId": 11
+    }
+  ],
+  "count": 2,
+  "filters": {
+    "playerId": 265,
+    "enemyTeamId": 11
+  }
+}
+```
+
+---
+
 ## 👥 Basic Player Endpoints
 
 ### `GET /api/players`
@@ -392,10 +556,49 @@ async function getAllTeams() {
     throw error;
   }
 }
+
+**4. Fetch player vs team game-by-game statistics:**
+```javascript
+async function getPlayerGameStats(playerId, enemyTeamId, filters = {}) {
+  try {
+    const params = new URLSearchParams({
+      playerId: playerId,
+      enemyTeamId: enemyTeamId,
+      ...filters
+    });
+    
+    const response = await fetch(`/api/players/statistics/games?${params}`);
+    const result = await response.json();
+    return result.data; // Returns array of individual games
+  } catch (error) {
+    console.error('Error fetching player game stats:', error);
+    throw error;
+  }
+}
+
+// Usage examples:
+// Get all games
+const allGames = await getPlayerGameStats(265, 11);
+
+// Filter by season
+const seasonGames = await getPlayerGameStats(265, 11, { seasonId: 2024 });
+
+// Filter games with 25+ points
+const highScoringGames = await getPlayerGameStats(265, 11, { 
+  statType: 'TotalPoints', 
+  overValue: 25 
+});
+
+// Filter by rebounds
+const highReboundGames = await getPlayerGameStats(265, 11, { 
+  statType: 'TotalRebounds', 
+  overValue: 10 
+});
 ```
 
-### React Hook Example
+### React Hook Examples
 
+**1. For aggregated statistics:**
 ```javascript
 import { useState, useEffect } from 'react';
 
@@ -426,6 +629,98 @@ function usePlayerStats(playerId, teamId) {
   }, [playerId, teamId]);
 
   return { stats, loading, error };
+}
+```
+
+**2. For game-by-game statistics with filters:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function usePlayerGameStats(playerId, enemyTeamId, filters = {}) {
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchGameStats() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          playerId: playerId,
+          enemyTeamId: enemyTeamId,
+          ...filters
+        });
+        
+        const response = await fetch(`/api/players/statistics/games?${params}`);
+        const result = await response.json();
+        setGames(result.data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (playerId && enemyTeamId) {
+      fetchGameStats();
+    }
+  }, [playerId, enemyTeamId, JSON.stringify(filters)]);
+
+  return { games, loading, error };
+}
+
+// Usage in component:
+function PlayerGameTable({ playerId, enemyTeamId }) {
+  const [filters, setFilters] = useState({});
+  const { games, loading, error } = usePlayerGameStats(playerId, enemyTeamId, filters);
+
+  const handleSeasonFilter = (seasonId) => {
+    setFilters(prev => ({ ...prev, seasonId }));
+  };
+
+  const handlePointsFilter = (overValue) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      statType: 'TotalPoints', 
+      overValue: overValue 
+    }));
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <div>
+        <button onClick={() => handleSeasonFilter(2024)}>2024 Season</button>
+        <button onClick={() => handlePointsFilter(25)}>25+ Points</button>
+        <button onClick={() => setFilters({})}>Clear Filters</button>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Points</th>
+            <th>Rebounds</th>
+            <th>Assists</th>
+            <th>Arena</th>
+          </tr>
+        </thead>
+        <tbody>
+          {games.map(game => (
+            <tr key={game.GameId}>
+              <td>{new Date(game.GameDate).toLocaleDateString()}</td>
+              <td>{game.TotalPoints}</td>
+              <td>{game.TotalRebounds}</td>
+              <td>{game.Assists}</td>
+              <td>{game.Arena}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 ```
 

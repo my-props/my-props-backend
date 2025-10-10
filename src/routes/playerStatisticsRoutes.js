@@ -254,3 +254,131 @@ router.get('/statistics/fields', asyncHandler(async (req, res) => {
 }));
 
 module.exports = router;
+
+/**
+ * @swagger
+ * /api/players/statistics/games:
+ *   get:
+ *     summary: Get player vs team statistics grouped by individual games
+ *     tags: [Players]
+ *     parameters:
+ *       - in: query
+ *         name: playerId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Player ID
+ *       - in: query
+ *         name: enemyTeamId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Enemy team ID
+ *       - in: query
+ *         name: seasonId
+ *         schema:
+ *           type: integer
+ *         description: Season ID filter
+ *       - in: query
+ *         name: arena
+ *         schema:
+ *           type: string
+ *         description: Arena name filter (currently disabled - Arena column not available in database)
+ *       - in: query
+ *         name: statType
+ *         schema:
+ *           type: string
+ *           enum: [TotalPoints, TotalRebounds, Assists, Steals, Blocks, Turnovers]
+ *         description: Stat type for over/under filter
+ *       - in: query
+ *         name: overValue
+ *         schema:
+ *           type: number
+ *         description: Minimum value for stat filter
+ *       - in: query
+ *         name: underValue
+ *         schema:
+ *           type: number
+ *         description: Maximum value for stat filter
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *         description: Field to order by (default: GameDate)
+ *       - in: query
+ *         name: orderDirection
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Order direction (default: DESC)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Limit number of results
+ *     responses:
+ *       200:
+ *         description: Game-by-game statistics retrieved successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/statistics/games', asyncHandler(async (req, res) => {
+    try {
+        const {
+            playerId,
+            enemyTeamId,
+            seasonId,
+            arena,
+            statType,
+            overValue,
+            underValue,
+            orderBy,
+            orderDirection,
+            limit
+        } = req.query;
+
+        // Validate required parameters
+        if (!playerId) {
+            throw new ValidationError('Player ID is required');
+        }
+        if (!enemyTeamId) {
+            throw new ValidationError('Enemy team ID is required');
+        }
+
+        // Build filters object
+        const filters = {};
+        if (seasonId) filters.seasonId = parseInt(seasonId);
+        if (arena) filters.arena = arena;
+        if (statType) filters.statType = statType;
+        if (overValue !== undefined) filters.overValue = parseFloat(overValue);
+        if (underValue !== undefined) filters.underValue = parseFloat(underValue);
+        if (orderBy) filters.orderBy = orderBy;
+        if (orderDirection) filters.orderDirection = orderDirection;
+        if (limit) filters.limit = parseInt(limit);
+
+        // Get data from service
+        const data = await playerStatisticsService.getPlayerVsTeamGameStatistics(
+            parseInt(playerId),
+            parseInt(enemyTeamId),
+            filters
+        );
+
+        // Return response
+        res.status(200).json({
+            success: true,
+            data: data,
+            count: data.length,
+            filters: filters
+        });
+
+    } catch (error) {
+        await errorLogService.logRouteError(error, 'playerStatisticsRoutes.js', {
+            route: '/statistics/games',
+            method: 'GET',
+            query: req.query
+        });
+        throw error;
+    }
+}));
