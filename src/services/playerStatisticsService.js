@@ -218,3 +218,39 @@ async function getPlayerStatistics(params) {
 }
 
 module.exports.getPlayerStatistics = getPlayerStatistics;
+
+/**
+ * Get player vs team game-by-game statistics
+ * @param {number} playerId - Player ID
+ * @param {number} enemyTeamId - Enemy team ID
+ * @param {Object} filters - Filter options
+ */
+async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}) {
+  try {
+    if (!playerId) {
+      throw new Error("Player ID is required");
+    }
+    if (!enemyTeamId) {
+      throw new Error("Enemy team ID is required");
+    }
+
+    const data = await playerStatisticsRepository.getPlayerVsTeamGameStatistics(
+      playerId,
+      enemyTeamId,
+      filters
+    );
+
+    return data;
+  } catch (error) {
+    console.error('Error getting player vs team game statistics:', error);
+    await errorLogService.logServiceError(
+      error,
+      'playerStatisticsService.js',
+      null,
+      { function: 'getPlayerVsTeamGameStatistics', playerId, enemyTeamId, filters }
+    );
+    throw error;
+  }
+}
+
+module.exports.getPlayerVsTeamGameStatistics = getPlayerVsTeamGameStatistics;

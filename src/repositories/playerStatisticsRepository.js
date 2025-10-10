@@ -620,3 +620,141 @@ async function getPlayerStatistics(params) {
 }
 
 module.exports.getPlayerStatistics = getPlayerStatistics;
+
+/**
+ * Get player vs team statistics grouped by individual games
+ * @param {number} playerId - Player ID
+ * @param {number} enemyTeamId - Enemy team ID
+ * @param {Object} filters - Filter options
+ * @param {number} [filters.seasonId] - Season ID filter
+ * @param {string} [filters.arena] - Arena name filter
+ * @param {string} [filters.statType] - Stat type for over/under filter (points, rebounds, assists, etc.)
+ * @param {number} [filters.overValue] - Over value for stat filter
+ * @param {number} [filters.underValue] - Under value for stat filter
+ * @param {string} [filters.orderBy] - Order by field (default: 'GameDate')
+ * @param {string} [filters.orderDirection] - Order direction (default: 'DESC')
+ * @param {number} [filters.limit] - Limit results
+ */
+async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}) {
+    const {
+        seasonId,
+        arena,
+        statType = 'TotalPoints',
+        overValue,
+        underValue,
+        orderBy = 'GameDate',
+        orderDirection = 'DESC',
+        limit
+    } = filters;
+
+    let whereConditions = [
+        'PS.PlayerId = @playerId',
+        'PS.Active = 1',
+        'G.Active = 1'
+    ];
+
+    // Add enemy team condition
+    whereConditions.push(`
+        (
+            (PS.TeamId = G.TeamHomeId AND G.TeamVisitorId = @enemyTeamId)
+            OR (PS.TeamId = G.TeamVisitorId AND G.TeamHomeId = @enemyTeamId)
+        )
+    `);
+
+    // Add season filter
+    if (seasonId) {
+        whereConditions.push('G.SeasonId = @seasonId');
+    }
+
+    // Note: Arena column doesn't exist in Game table, so arena filter is disabled
+    // if (arena) {
+    //     whereConditions.push('G.Arena LIKE @arena');
+    // }
+
+    // Add over/under filters
+    if (overValue !== undefined) {
+        whereConditions.push(`PS.${statType} >= @overValue`);
+    }
+    if (underValue !== undefined) {
+        whereConditions.push(`PS.${statType} <= @underValue`);
+    }
+
+    const query = `
+        SELECT 
+            PS.GameId,
+            G.StartDate AS GameDate,
+            NULL AS Arena,
+            G.SeasonId,
+            S.Year AS SeasonYear,
+            PS.TotalPoints,
+            PS.TotalRebounds,
+            PS.Assists,
+            PS.Steals,
+            PS.Blocks,
+            PS.Turnovers,
+            PS.FieldGoalsMade,
+            PS.FieldGoalsAttempted,
+            PS.FieldGoalPercentage,
+            PS.ThreePointShotsMade,
+            PS.ThreePointShotsAttempted,
+            PS.ThreePointShotPercentage,
+            PS.FreeThrowsMade,
+            PS.FreeThrowsAttempted,
+            PS.FreeThrowPercentage,
+            PS.PersonalFouls,
+            PS.PlusMinus,
+            PS.MinutesPlayed,
+            PS.Position AS PlayerPosition,
+            P.FirstName AS PlayerFirstName,
+            P.LastName AS PlayerLastName,
+            T.Name AS EnemyTeamName,
+            T.NickName AS EnemyTeamNickName,
+            CASE 
+                WHEN PS.TeamId = G.TeamHomeId THEN 'Home'
+                ELSE 'Away'
+            END AS GameLocation,
+            CASE 
+                WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
+                ELSE G.TeamHomeId
+            END AS EnemyTeamId
+        FROM PlayerStats PS
+        INNER JOIN Game G ON PS.GameId = G.Id
+        INNER JOIN Season S ON G.SeasonId = S.Id
+        INNER JOIN Player P ON P.Id = PS.PlayerId
+        INNER JOIN Team T ON T.Id = CASE 
+            WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
+            ELSE G.TeamHomeId
+        END
+        WHERE ${whereConditions.join(' AND ')}
+        ORDER BY ${orderBy} ${orderDirection}
+        ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
+    `;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        request.input('playerId', playerId);
+        request.input('enemyTeamId', enemyTeamId);
+        
+        if (seasonId) request.input('seasonId', seasonId);
+        // Arena filter disabled - column doesn't exist
+        // if (arena) request.input('arena', `%${arena}%`);
+        if (overValue !== undefined) request.input('overValue', overValue);
+        if (underValue !== undefined) request.input('underValue', underValue);
+
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error getting player vs team game statistics:', error);
+        await errorLogService.logDatabaseError(
+            error,
+            'playerStatisticsRepository.js',
+            null,
+            { function: 'getPlayerVsTeamGameStatistics', playerId, enemyTeamId, filters }
+        );
+        throw error;
+    }
+}
+
+module.exports.getPlayerVsTeamGameStatistics = getPlayerVsTeamGameStatistics;
