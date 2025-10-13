@@ -32,7 +32,7 @@ async function getPlayerById(id) {
 }
 
 async function getPlayersByTeamId(teamId) {
-  const query = `SELECT PLAYER_ID AS Id, FirstName, LastName FROM VW_PLAYER_CURRENT_TEAM WHERE TEAM_ID = @TEAM_ID`;
+  const query = `SELECT PLAYER_ID AS Id, FirstName, LastName, PLAYER_PHOTO as PlayerPhoto FROM VW_PLAYER_CURRENT_TEAM WHERE TEAM_ID = @TEAM_ID`;
 
   try {
     const pool = await getPool();

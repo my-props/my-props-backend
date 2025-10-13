@@ -3,7 +3,7 @@ const errorLogService = require("../services/errorLogService");
 
 async function getAllPlayerStats() {
   const query = `SELECT * FROM PlayerStats`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request().query(query);
@@ -17,7 +17,7 @@ async function getAllPlayerStats() {
 
 async function getPlayerStatsById(id) {
   const query = `SELECT * FROM PlayerStats WHERE id = @id`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -33,7 +33,7 @@ async function getPlayerStatsById(id) {
 
 async function getPlayerStatsByPlayerId(playerId) {
   const query = `SELECT * FROM PlayerStats WHERE playerId = @playerId`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -49,7 +49,7 @@ async function getPlayerStatsByPlayerId(playerId) {
 
 async function getPlayerStatsByGameId(gameId) {
   const query = `SELECT * FROM PlayerStats WHERE gameId = @gameId`;
-  
+
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -64,8 +64,8 @@ async function getPlayerStatsByGameId(gameId) {
 }
 
 async function getPlayerStatsBySeason(seasonId) {
-  const query = `SELECT * FROM PlayerStats WHERE seasonId = @seasonId`;
-  
+  const query = `SELECT * FROM PlayerStats WHERE SeasonYear = @seasonId`;
+
   try {
     const pool = await getPool();
     const result = await pool.request()
