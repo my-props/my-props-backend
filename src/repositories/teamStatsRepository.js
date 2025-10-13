@@ -48,7 +48,7 @@ async function getTeamStatsByTeamId(teamId) {
 }
 
 async function getTeamStatsBySeason(seasonId) {
-  const query = `SELECT * FROM TeamStats WHERE seasonId = @seasonId`;
+  const query = `SELECT * FROM TeamStats WHERE SeasonYear = @seasonId`;
 
   try {
     const pool = await getPool();

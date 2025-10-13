@@ -158,7 +158,7 @@ async function getPlayerVsAllTeamsStatistics(playerId, seasonId = null) {
             LastUpdated
         FROM PlayerVsTeamStats
         WHERE PlayerId = @playerId
-          ${seasonId ? 'AND SeasonId = @seasonId' : ''}
+          ${seasonId ? 'AND SeasonYear = @seasonId' : ''}
         ORDER BY AveragePoints DESC
     `;
 
@@ -218,7 +218,7 @@ async function getPlayerVsTeamDetailedStatistics(playerId, enemyTeamId, seasonId
                 (PS.TeamId = G.TeamHomeId AND G.TeamVisitorId = @enemyTeamId)
              OR (PS.TeamId = G.TeamVisitorId AND G.TeamHomeId = @enemyTeamId)
               )
-          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
     `;
 
     try {
@@ -254,7 +254,7 @@ async function getPlayerVsPositionStatistics(playerId, enemyPosition, seasonId =
             WHERE PS.PlayerId = @playerId
               AND PS.Active = 1
               AND G.Active = 1
-              ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
+              ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
         )
         SELECT
             P.FirstName,
@@ -351,7 +351,7 @@ async function getPlayerInPositionVsTeamStatistics(playerId, enemyTeamId, positi
                 (PS.TeamId = G.TeamHomeId AND G.TeamVisitorId = @enemyTeamId)
              OR (PS.TeamId = G.TeamVisitorId AND G.TeamHomeId = @enemyTeamId)
               )
-          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
     `;
 
     try {
@@ -410,7 +410,7 @@ async function getPlayerInPositionVsAllTeamsStatistics(playerId, position, seaso
           AND PS.Position = @position
           AND PS.Active = 1
           AND G.Active = 1
-          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
         GROUP BY
             CASE
                 WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
@@ -569,7 +569,7 @@ async function getPlayerStatistics(params) {
 
     // Add season filter if provided
     if (seasonId) {
-        whereConditions.push('SeasonId = @seasonId');
+        whereConditions.push('SeasonYear = @seasonId');
     }
 
     // Add group by if specified
@@ -663,7 +663,7 @@ async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}
 
     // Add season filter
     if (seasonId) {
-        whereConditions.push('G.SeasonId = @seasonId');
+        whereConditions.push('G.SeasonYear = @seasonId');
     }
 
     // Note: Arena column doesn't exist in Game table, so arena filter is disabled
@@ -736,7 +736,7 @@ async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}
 
         request.input('playerId', playerId);
         request.input('enemyTeamId', enemyTeamId);
-        
+
         if (seasonId) request.input('seasonId', seasonId);
         // Arena filter disabled - column doesn't exist
         // if (arena) request.input('arena', `%${arena}%`);
