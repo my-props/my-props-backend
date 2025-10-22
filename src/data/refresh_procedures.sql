@@ -645,6 +645,14 @@ BEGIN
             LastName,
             Position,
             TeamId,
+            CASE 
+                WHEN TeamId = TeamHomeId THEN HomeTeamName
+                ELSE VisitorTeamName
+            END AS TeamName,
+            CASE 
+                WHEN TeamId = TeamHomeId THEN HomeTeamNickName
+                ELSE VisitorTeamNickName
+            END AS TeamNickName,
             EnemyTeamId,
             EnemyTeamName,
             EnemyTeamNickName,
@@ -741,6 +749,14 @@ BEGIN
             LastName,
             Position,
             TeamId,
+            CASE 
+                WHEN TeamId = TeamHomeId THEN HomeTeamName
+                ELSE VisitorTeamName
+            END,
+            CASE 
+                WHEN TeamId = TeamHomeId THEN HomeTeamNickName
+                ELSE VisitorTeamNickName
+            END,
             EnemyTeamId,
             EnemyTeamName,
             EnemyTeamNickName,

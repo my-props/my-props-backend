@@ -800,6 +800,8 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
             LastName,
             Position,
             TeamId,
+            TeamName,
+            TeamNickName,
             EnemyTeamId,
             EnemyTeamName,
             EnemyTeamNickName,

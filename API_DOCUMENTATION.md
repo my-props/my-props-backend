@@ -375,6 +375,8 @@ This endpoint provides comprehensive player statistics for team vs team matchups
 | `LastName` | string | Player's last name |
 | `Position` | string | Player's position |
 | `TeamId` | integer | Player's team ID |
+| `TeamName` | string | Player's team name |
+| `TeamNickName` | string | Player's team nickname |
 | `EnemyTeamId` | integer | Opponent team ID |
 | `EnemyTeamName` | string | Opponent team name |
 | `EnemyTeamNickName` | string | Opponent team nickname |
@@ -451,6 +453,8 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "LastName": "James",
           "Position": "SF",
           "TeamId": 1,
+          "TeamName": "Los Angeles Lakers",
+          "TeamNickName": "Lakers",
           "EnemyTeamId": 2,
           "EnemyTeamName": "Golden State Warriors",
           "EnemyTeamNickName": "Warriors",
@@ -506,6 +510,8 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "LastName": "Curry",
           "Position": "PG",
           "TeamId": 2,
+          "TeamName": "Golden State Warriors",
+          "TeamNickName": "Warriors",
           "EnemyTeamId": 1,
           "EnemyTeamName": "Los Angeles Lakers",
           "EnemyTeamNickName": "Lakers",
