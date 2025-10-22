@@ -112,6 +112,27 @@ class ViewManagementService {
     }
 
     /**
+     * Refresh TeamVsTeamPlayerStats view
+     */
+    async refreshTeamVsTeamPlayerStats() {
+        try {
+            const pool = await getPool();
+            const result = await pool.request().execute('RefreshTeamVsTeamPlayerStats');
+            
+            console.log('TeamVsTeamPlayerStats refreshed successfully');
+            return {
+                success: true,
+                message: 'TeamVsTeamPlayerStats refreshed successfully',
+                result: result
+            };
+        } catch (error) {
+            console.error('Error refreshing TeamVsTeamPlayerStats:', error);
+            await errorLogService.logServiceError(error, 'viewManagementService.js', null, { function: 'refreshTeamVsTeamPlayerStats' });
+            throw error;
+        }
+    }
+
+    /**
      * Refresh views for a specific season
      */
     async refreshViewsForSeason(seasonId) {
@@ -250,7 +271,8 @@ class ViewManagementService {
                     'PlayerVsTeamStats',
                     'PlayerPositionStats', 
                     'PlayerVsPositionStats',
-                    'PlayerVsPlayerStats'
+                    'PlayerVsPlayerStats',
+                    'TeamVsTeamPlayerStats'
                 )
                 ORDER BY TABLE_NAME
             `;

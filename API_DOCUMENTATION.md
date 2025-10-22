@@ -343,6 +343,516 @@ GET /api/players/statistics/games?playerId=265&enemyTeamId=11&orderBy=TotalPoint
 
 ---
 
+## 🏆 Team vs Team Player Statistics Endpoint
+
+### `GET /api/teams/{teamId1}/vs/{teamId2}/players`
+
+This endpoint provides comprehensive player statistics for team vs team matchups. It shows all players from both teams with their individual statistics against each other, including all the fields you requested.
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `teamId1` | integer | ✅ Yes | First team ID (e.g., Lakers) |
+| `teamId2` | integer | ✅ Yes | Second team ID (e.g., Warriors) |
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `seasonId` | integer | No | Season ID filter |
+| `position` | string | No | Position filter (PG, SG, SF, PF, C) |
+| `orderBy` | string | No | Field to order by (default: AveragePoints) |
+| `orderDirection` | string | No | Order direction: ASC or DESC (default: DESC) |
+| `limit` | integer | No | Limit number of results |
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `PlayerId` | integer | Player's unique identifier |
+| `FirstName` | string | Player's first name |
+| `LastName` | string | Player's last name |
+| `Position` | string | Player's position |
+| `TeamId` | integer | Player's team ID |
+| `EnemyTeamId` | integer | Opponent team ID |
+| `EnemyTeamName` | string | Opponent team name |
+| `EnemyTeamNickName` | string | Opponent team nickname |
+| `SeasonId` | integer | Season identifier |
+| `SeasonYear` | integer | Season year |
+| `AveragePoints` | number | Average points per game |
+| `AverageRebounds` | number | Average rebounds per game |
+| `AverageAssists` | number | Average assists per game |
+| `AverageSteals` | number | Average steals per game |
+| `AverageBlocks` | number | Average blocks per game |
+| `AverageTurnovers` | number | Average turnovers per game |
+| `AveragePointsPlusRebounds` | number | Average points + rebounds |
+| `AveragePointsPlusReboundsPlusAssists` | number | Average points + rebounds + assists |
+| `AveragePointsPlusAssists` | number | Average points + assists |
+| `AverageAssistsPlusRebounds` | number | Average assists + rebounds |
+| `AverageOverPoints` | number | Average over points |
+| `GamesOver20Points` | integer | Games with 20+ points |
+| `GamesOver25Points` | integer | Games with 25+ points |
+| `GamesOver30Points` | integer | Games with 30+ points |
+| `GamesOver35Points` | integer | Games with 35+ points |
+| `GamesOver40Points` | integer | Games with 40+ points |
+| `GamesOver5Rebounds` | integer | Games with 5+ rebounds |
+| `GamesOver10Rebounds` | integer | Games with 10+ rebounds |
+| `GamesOver15Rebounds` | integer | Games with 15+ rebounds |
+| `GamesOver5Assists` | integer | Games with 5+ assists |
+| `GamesOver10Assists` | integer | Games with 10+ assists |
+| `GamesOver15Assists` | integer | Games with 15+ assists |
+| `FieldGoalPercentage` | number | Field goal percentage |
+| `ThreePointPercentage` | number | Three-point percentage |
+| `FreeThrowPercentage` | number | Free throw percentage |
+| `MaxPoints` | number | Maximum points in a game |
+| `MinPoints` | number | Minimum points in a game |
+| `MaxRebounds` | number | Maximum rebounds in a game |
+| `MinRebounds` | number | Minimum rebounds in a game |
+| `MaxAssists` | number | Maximum assists in a game |
+| `MinAssists` | number | Minimum assists in a game |
+| `GamesPlayed` | integer | Number of games played against opponent |
+| `HomeGames` | integer | Number of home games |
+| `AwayGames` | integer | Number of away games |
+| `PointsStandardDeviation` | number | Points consistency metric |
+| `ReboundsStandardDeviation` | number | Rebounds consistency metric |
+| `AssistsStandardDeviation` | number | Assists consistency metric |
+
+#### Example Requests
+
+**1. Get Lakers vs Warriors player statistics:**
+```bash
+GET /api/teams/1/vs/2/players
+```
+
+**2. Filter by season and position:**
+```bash
+GET /api/teams/1/vs/2/players?seasonId=2024&position=PG
+```
+
+**3. Order by rebounds and limit results:**
+```bash
+GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=10
+```
+
+#### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "team1": {
+      "teamId": 1,
+      "teamName": "Los Angeles Lakers",
+      "players": [
+        {
+          "PlayerId": 123,
+          "FirstName": "LeBron",
+          "LastName": "James",
+          "Position": "SF",
+          "TeamId": 1,
+          "EnemyTeamId": 2,
+          "EnemyTeamName": "Golden State Warriors",
+          "EnemyTeamNickName": "Warriors",
+          "SeasonId": 2024,
+          "SeasonYear": 2024,
+          "AveragePoints": 28.5,
+          "AverageRebounds": 8.2,
+          "AverageAssists": 9.1,
+          "AverageSteals": 1.3,
+          "AverageBlocks": 0.8,
+          "AverageTurnovers": 3.2,
+          "AveragePointsPlusRebounds": 36.7,
+          "AveragePointsPlusReboundsPlusAssists": 45.8,
+          "AveragePointsPlusAssists": 37.6,
+          "AverageAssistsPlusRebounds": 17.3,
+          "AverageOverPoints": 28.5,
+          "GamesOver20Points": 8,
+          "GamesOver25Points": 6,
+          "GamesOver30Points": 4,
+          "GamesOver35Points": 2,
+          "GamesOver40Points": 1,
+          "GamesOver5Rebounds": 9,
+          "GamesOver10Rebounds": 5,
+          "GamesOver15Rebounds": 1,
+          "GamesOver5Assists": 8,
+          "GamesOver10Assists": 4,
+          "GamesOver15Assists": 1,
+          "FieldGoalPercentage": 55.2,
+          "ThreePointPercentage": 38.5,
+          "FreeThrowPercentage": 82.1,
+          "MaxPoints": 45,
+          "MinPoints": 18,
+          "MaxRebounds": 15,
+          "MinRebounds": 3,
+          "MaxAssists": 15,
+          "MinAssists": 4,
+          "GamesPlayed": 10,
+          "HomeGames": 5,
+          "AwayGames": 5,
+          "PointsStandardDeviation": 8.2,
+          "ReboundsStandardDeviation": 3.1,
+          "AssistsStandardDeviation": 2.8
+        }
+      ]
+    },
+    "team2": {
+      "teamId": 2,
+      "teamName": "Golden State Warriors",
+      "players": [
+        {
+          "PlayerId": 456,
+          "FirstName": "Stephen",
+          "LastName": "Curry",
+          "Position": "PG",
+          "TeamId": 2,
+          "EnemyTeamId": 1,
+          "EnemyTeamName": "Los Angeles Lakers",
+          "EnemyTeamNickName": "Lakers",
+          "SeasonId": 2024,
+          "SeasonYear": 2024,
+          "AveragePoints": 32.1,
+          "AverageRebounds": 5.8,
+          "AverageAssists": 7.2,
+          "AverageSteals": 1.8,
+          "AverageBlocks": 0.3,
+          "AverageTurnovers": 2.9,
+          "AveragePointsPlusRebounds": 37.9,
+          "AveragePointsPlusReboundsPlusAssists": 45.1,
+          "AveragePointsPlusAssists": 39.3,
+          "AverageAssistsPlusRebounds": 13.0,
+          "AverageOverPoints": 32.1,
+          "GamesOver20Points": 9,
+          "GamesOver25Points": 8,
+          "GamesOver30Points": 6,
+          "GamesOver35Points": 3,
+          "GamesOver40Points": 2,
+          "GamesOver5Rebounds": 7,
+          "GamesOver10Rebounds": 2,
+          "GamesOver15Rebounds": 0,
+          "GamesOver5Assists": 8,
+          "GamesOver10Assists": 3,
+          "GamesOver15Assists": 0,
+          "FieldGoalPercentage": 48.7,
+          "ThreePointPercentage": 42.3,
+          "FreeThrowPercentage": 91.5,
+          "MaxPoints": 52,
+          "MinPoints": 22,
+          "MaxRebounds": 12,
+          "MinRebounds": 2,
+          "MaxAssists": 12,
+          "MinAssists": 3,
+          "GamesPlayed": 10,
+          "HomeGames": 5,
+          "AwayGames": 5,
+          "PointsStandardDeviation": 9.8,
+          "ReboundsStandardDeviation": 2.4,
+          "AssistsStandardDeviation": 2.1
+        }
+      ]
+    },
+    "totalPlayers": 2,
+    "filters": {}
+  }
+}
+```
+
+### `GET /api/teams/{teamId1}/vs/{teamId2}/players/summary`
+
+Get a summary of team vs team player statistics with key metrics.
+
+#### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "team1": {
+      "totalPlayers": 15,
+      "averagePoints": 24.3,
+      "averageRebounds": 6.8,
+      "averageAssists": 5.2,
+      "totalGamesPlayed": 150,
+      "topScorer": {
+        "FirstName": "LeBron",
+        "LastName": "James",
+        "AveragePoints": 28.5
+      },
+      "topRebounder": {
+        "FirstName": "Anthony",
+        "LastName": "Davis",
+        "AverageRebounds": 12.1
+      },
+      "topAssistMan": {
+        "FirstName": "LeBron",
+        "LastName": "James",
+        "AverageAssists": 9.1
+      }
+    },
+    "team2": {
+      "totalPlayers": 14,
+      "averagePoints": 22.7,
+      "averageRebounds": 5.9,
+      "averageAssists": 4.8,
+      "totalGamesPlayed": 140,
+      "topScorer": {
+        "FirstName": "Stephen",
+        "LastName": "Curry",
+        "AveragePoints": 32.1
+      },
+      "topRebounder": {
+        "FirstName": "Draymond",
+        "LastName": "Green",
+        "AverageRebounds": 8.3
+      },
+      "topAssistMan": {
+        "FirstName": "Stephen",
+        "LastName": "Curry",
+        "AverageAssists": 7.2
+      }
+    },
+    "totalPlayers": 29,
+    "filters": {}
+  }
+}
+```
+
+#### JavaScript Examples
+
+**1. Basic team vs team statistics:**
+```javascript
+// Fetch Lakers vs Warriors player statistics
+async function getTeamVsTeamStats(teamId1, teamId2) {
+  try {
+    const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/players`);
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('Team 1 players:', data.data.team1.players);
+      console.log('Team 2 players:', data.data.team2.players);
+      return data.data;
+    } else {
+      throw new Error('Failed to fetch team vs team statistics');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getTeamVsTeamStats(1, 2); // Lakers vs Warriors
+```
+
+**2. Filtered team vs team statistics:**
+```javascript
+// Get point guards only for Lakers vs Warriors in 2024 season
+async function getFilteredTeamVsTeamStats(teamId1, teamId2, filters = {}) {
+  const params = new URLSearchParams();
+  
+  if (filters.seasonId) params.append('seasonId', filters.seasonId);
+  if (filters.position) params.append('position', filters.position);
+  if (filters.orderBy) params.append('orderBy', filters.orderBy);
+  if (filters.orderDirection) params.append('orderDirection', filters.orderDirection);
+  if (filters.limit) params.append('limit', filters.limit);
+
+  try {
+    const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/players?${params}`);
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getFilteredTeamVsTeamStats(1, 2, {
+  seasonId: 2024,
+  position: 'PG',
+  orderBy: 'AveragePoints',
+  orderDirection: 'DESC',
+  limit: 5
+});
+```
+
+**3. Team vs team summary:**
+```javascript
+// Get team vs team summary statistics
+async function getTeamVsTeamSummary(teamId1, teamId2, seasonId = null) {
+  const params = seasonId ? `?seasonId=${seasonId}` : '';
+  
+  try {
+    const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/players/summary${params}`);
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getTeamVsTeamSummary(1, 2, 2024);
+```
+
+#### React Hook Examples
+
+**1. Custom hook for team vs team statistics:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function useTeamVsTeamStats(teamId1, teamId2, filters = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            params.append(key, value);
+          }
+        });
+
+        const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/players?${params}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError(new Error('Failed to fetch data'));
+        }
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (teamId1 && teamId2) {
+      fetchData();
+    }
+  }, [teamId1, teamId2, JSON.stringify(filters)]);
+
+  return { data, loading, error };
+}
+
+// Usage in component
+function TeamVsTeamComponent() {
+  const { data, loading, error } = useTeamVsTeamStats(1, 2, {
+    seasonId: 2024,
+    position: 'PG'
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!data) return <div>No data available</div>;
+
+  return (
+    <div>
+      <h2>{data.team1.teamName} vs {data.team2.teamName}</h2>
+      <div>
+        <h3>{data.team1.teamName} Players</h3>
+        {data.team1.players.map(player => (
+          <div key={player.PlayerId}>
+            {player.FirstName} {player.LastName} - {player.AveragePoints} PPG
+          </div>
+        ))}
+      </div>
+      <div>
+        <h3>{data.team2.teamName} Players</h3>
+        {data.team2.players.map(player => (
+          <div key={player.PlayerId}>
+            {player.FirstName} {player.LastName} - {player.AveragePoints} PPG
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+**2. Advanced filtering component:**
+```javascript
+import { useState } from 'react';
+
+function TeamVsTeamFilter({ teamId1, teamId2 }) {
+  const [filters, setFilters] = useState({
+    seasonId: null,
+    position: '',
+    orderBy: 'AveragePoints',
+    orderDirection: 'DESC',
+    limit: null
+  });
+  
+  const { data, loading, error } = useTeamVsTeamStats(teamId1, teamId2, filters);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value === '' ? null : value
+    }));
+  };
+
+  return (
+    <div>
+      <div className="filters">
+        <select 
+          value={filters.seasonId || ''} 
+          onChange={(e) => handleFilterChange('seasonId', e.target.value)}
+        >
+          <option value="">All Seasons</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+        </select>
+        
+        <select 
+          value={filters.position} 
+          onChange={(e) => handleFilterChange('position', e.target.value)}
+        >
+          <option value="">All Positions</option>
+          <option value="PG">Point Guard</option>
+          <option value="SG">Shooting Guard</option>
+          <option value="SF">Small Forward</option>
+          <option value="PF">Power Forward</option>
+          <option value="C">Center</option>
+        </select>
+        
+        <select 
+          value={filters.orderBy} 
+          onChange={(e) => handleFilterChange('orderBy', e.target.value)}
+        >
+          <option value="AveragePoints">Points</option>
+          <option value="AverageRebounds">Rebounds</option>
+          <option value="AverageAssists">Assists</option>
+          <option value="GamesPlayed">Games Played</option>
+        </select>
+        
+        <select 
+          value={filters.orderDirection} 
+          onChange={(e) => handleFilterChange('orderDirection', e.target.value)}
+        >
+          <option value="DESC">Descending</option>
+          <option value="ASC">Ascending</option>
+        </select>
+      </div>
+
+      {loading && <div>Loading...</div>}
+      {error && <div>Error: {error.message}</div>}
+      {data && (
+        <div>
+          {/* Render your data here */}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
 ## 👥 Basic Player Endpoints
 
 ### `GET /api/players`

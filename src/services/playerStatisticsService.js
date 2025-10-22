@@ -254,3 +254,39 @@ async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}
 }
 
 module.exports.getPlayerVsTeamGameStatistics = getPlayerVsTeamGameStatistics;
+
+/**
+ * Get team vs team player statistics
+ * @param {number} teamId1 - First team ID
+ * @param {number} teamId2 - Second team ID
+ * @param {Object} filters - Filter options
+ */
+async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
+  try {
+    if (!teamId1) {
+      throw new Error("First team ID is required");
+    }
+    if (!teamId2) {
+      throw new Error("Second team ID is required");
+    }
+
+    const data = await playerStatisticsRepository.getTeamVsTeamPlayerStatistics(
+      teamId1,
+      teamId2,
+      filters
+    );
+
+    return data;
+  } catch (error) {
+    console.error('Error getting team vs team player statistics:', error);
+    await errorLogService.logServiceError(
+      error,
+      'playerStatisticsService.js',
+      null,
+      { function: 'getTeamVsTeamPlayerStatistics', teamId1, teamId2, filters }
+    );
+    throw error;
+  }
+}
+
+module.exports.getTeamVsTeamPlayerStatistics = getTeamVsTeamPlayerStatistics;

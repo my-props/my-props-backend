@@ -21,6 +21,7 @@ const playerStatsRoutes = require("./routes/playerStatsRoutes")
 const seasonRoutes = require("./routes/seasonRoutes")
 const teamRoutes = require("./routes/teamRoutes")
 const teamStatsRoutes = require("./routes/teamStatsRoutes")
+const teamVsTeamPlayerRoutes = require("./routes/teamVsTeamPlayerRoutes")
 const viewManagementRoutes = require("./routes/viewManagementRoutes")
 
 const app = express()
@@ -64,7 +65,7 @@ app.use("/api/players", playerRoutes)
 
 app.use("/api/teams", teamRoutes)
 app.use("/api/teams", teamStatsRoutes)
-app.use("/api/teams", teamStatisticsRoutes)
+app.use("/api/teams", teamVsTeamPlayerRoutes)
 
 app.use("/api/games", gamesRoutes)
 app.use("/api/games", gameStatsRoutes)

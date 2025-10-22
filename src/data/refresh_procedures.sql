@@ -89,6 +89,21 @@ BEGIN
         -- Log the error
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerVsPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+    -- Refresh TeamVsTeamPlayerStats
+    BEGIN TRY
+        PRINT 'Refreshing TeamVsTeamPlayerStats...'
+        EXEC RefreshTeamVsTeamPlayerStats;
+        PRINT 'TeamVsTeamPlayerStats refreshed successfully'
+        SET @SuccessCount = @SuccessCount + 1
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'ERROR refreshing TeamVsTeamPlayerStats: ' + @ErrorMessage
+        SET @ErrorCount = @ErrorCount + 1
+        
+        -- Log the error
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+        VALUES ('TeamVsTeamPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
     END CATCH
     
     DECLARE @EndTime DATETIME2 = GETDATE();
@@ -530,7 +545,234 @@ BEGIN
 END;
 
 -- =====================================================
--- 6. CREATE REFRESH LOG TABLE
+-- 6. REFRESH TEAM VS TEAM PLAYER STATISTICS
+-- =====================================================
+IF EXISTS (SELECT * FROM sys.procedures WHERE name = 'RefreshTeamVsTeamPlayerStats')
+    DROP PROCEDURE RefreshTeamVsTeamPlayerStats;
+
+CREATE PROCEDURE RefreshTeamVsTeamPlayerStats
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @StartTime DATETIME2 = GETDATE();
+    DECLARE @ErrorMessage NVARCHAR(4000);
+    
+    BEGIN TRY
+        -- Drop and recreate the view
+        IF EXISTS (SELECT * FROM sys.views WHERE name = 'TeamVsTeamPlayerStats')
+            DROP VIEW TeamVsTeamPlayerStats;
+            
+        -- Recreate the view (this will refresh the data)
+        EXEC('
+        CREATE VIEW TeamVsTeamPlayerStats AS
+        WITH TeamMatchups AS (
+            -- Get all games between two teams
+            SELECT 
+                G.Id AS GameId,
+                G.StartDate AS GameDate,
+                G.SeasonId,
+                S.Year AS SeasonYear,
+                G.TeamHomeId,
+                G.TeamVisitorId,
+                T1.Name AS HomeTeamName,
+                T1.NickName AS HomeTeamNickName,
+                T2.Name AS VisitorTeamName,
+                T2.NickName AS VisitorTeamNickName
+            FROM Game G
+            INNER JOIN Season S ON G.SeasonId = S.Id
+            INNER JOIN Team T1 ON G.TeamHomeId = T1.Id
+            INNER JOIN Team T2 ON G.TeamVisitorId = T2.Id
+            WHERE G.Active = 1
+        ),
+        PlayerStatsInMatchups AS (
+            -- Get player stats for all games in team matchups
+            SELECT 
+                PS.PlayerId,
+                P.FirstName,
+                P.LastName,
+                P.Position,
+                PS.TeamId,
+                PS.GameId,
+                PS.TotalPoints,
+                PS.TotalRebounds,
+                PS.Assists,
+                PS.Steals,
+                PS.Blocks,
+                PS.Turnovers,
+                PS.FieldGoalsMade,
+                PS.FieldGoalsAttempted,
+                PS.ThreePointShotsMade,
+                PS.ThreePointShotsAttempted,
+                PS.FreeThrowsMade,
+                PS.FreeThrowsAttempted,
+                PS.PersonalFouls,
+                PS.PlusMinus,
+                PS.MinutesPlayed,
+                TM.SeasonId,
+                TM.SeasonYear,
+                TM.TeamHomeId,
+                TM.TeamVisitorId,
+                TM.HomeTeamName,
+                TM.HomeTeamNickName,
+                TM.VisitorTeamName,
+                TM.VisitorTeamNickName,
+                CASE 
+                    WHEN PS.TeamId = TM.TeamHomeId THEN TM.TeamVisitorId
+                    ELSE TM.TeamHomeId
+                END AS EnemyTeamId,
+                CASE 
+                    WHEN PS.TeamId = TM.TeamHomeId THEN TM.VisitorTeamName
+                    ELSE TM.HomeTeamName
+                END AS EnemyTeamName,
+                CASE 
+                    WHEN PS.TeamId = TM.TeamHomeId THEN TM.VisitorTeamNickName
+                    ELSE TM.HomeTeamNickName
+                END AS EnemyTeamNickName,
+                CASE 
+                    WHEN PS.TeamId = TM.TeamHomeId THEN ''Home''
+                    ELSE ''Away''
+                END AS GameLocation
+            FROM PlayerStats PS
+            INNER JOIN Player P ON PS.PlayerId = P.Id
+            INNER JOIN TeamMatchups TM ON PS.GameId = TM.GameId
+            WHERE PS.Active = 1
+              AND P.Active = 1
+        )
+        SELECT 
+            PlayerId,
+            FirstName,
+            LastName,
+            Position,
+            TeamId,
+            EnemyTeamId,
+            EnemyTeamName,
+            EnemyTeamNickName,
+            SeasonId,
+            SeasonYear,
+            
+            -- Basic Statistics
+            AVG(CAST(TotalPoints AS FLOAT)) AS AveragePoints,
+            AVG(CAST(TotalRebounds AS FLOAT)) AS AverageRebounds,
+            AVG(CAST(Assists AS FLOAT)) AS AverageAssists,
+            AVG(CAST(Steals AS FLOAT)) AS AverageSteals,
+            AVG(CAST(Blocks AS FLOAT)) AS AverageBlocks,
+            AVG(CAST(Turnovers AS FLOAT)) AS AverageTurnovers,
+            
+            -- Combined Statistics
+            AVG(CAST(TotalPoints + TotalRebounds AS FLOAT)) AS AveragePointsPlusRebounds,
+            AVG(CAST(TotalPoints + TotalRebounds + Assists AS FLOAT)) AS AveragePointsPlusReboundsPlusAssists,
+            AVG(CAST(TotalPoints + Assists AS FLOAT)) AS AveragePointsPlusAssists,
+            AVG(CAST(Assists + TotalRebounds AS FLOAT)) AS AverageAssistsPlusRebounds,
+            
+            -- Over/Under Statistics
+            AVG(CAST(TotalPoints AS FLOAT)) AS AverageOverPoints,
+            COUNT(CASE WHEN TotalPoints > 20 THEN 1 END) AS GamesOver20Points,
+            COUNT(CASE WHEN TotalPoints > 25 THEN 1 END) AS GamesOver25Points,
+            COUNT(CASE WHEN TotalPoints > 30 THEN 1 END) AS GamesOver30Points,
+            COUNT(CASE WHEN TotalPoints > 35 THEN 1 END) AS GamesOver35Points,
+            COUNT(CASE WHEN TotalPoints > 40 THEN 1 END) AS GamesOver40Points,
+            
+            -- Rebound Over/Under
+            COUNT(CASE WHEN TotalRebounds > 5 THEN 1 END) AS GamesOver5Rebounds,
+            COUNT(CASE WHEN TotalRebounds > 10 THEN 1 END) AS GamesOver10Rebounds,
+            COUNT(CASE WHEN TotalRebounds > 15 THEN 1 END) AS GamesOver15Rebounds,
+            
+            -- Assist Over/Under
+            COUNT(CASE WHEN Assists > 5 THEN 1 END) AS GamesOver5Assists,
+            COUNT(CASE WHEN Assists > 10 THEN 1 END) AS GamesOver10Assists,
+            COUNT(CASE WHEN Assists > 15 THEN 1 END) AS GamesOver15Assists,
+            
+            -- Shooting Statistics
+            AVG(CAST(FieldGoalsMade AS FLOAT)) AS AverageFieldGoalsMade,
+            AVG(CAST(FieldGoalsAttempted AS FLOAT)) AS AverageFieldGoalsAttempted,
+            AVG(CAST(ThreePointShotsMade AS FLOAT)) AS AverageThreePointShotsMade,
+            AVG(CAST(ThreePointShotsAttempted AS FLOAT)) AS AverageThreePointShotsAttempted,
+            AVG(CAST(FreeThrowsMade AS FLOAT)) AS AverageFreeThrowsMade,
+            AVG(CAST(FreeThrowsAttempted AS FLOAT)) AS AverageFreeThrowsAttempted,
+            
+            -- Shooting Percentages
+            CASE 
+                WHEN AVG(CAST(FieldGoalsAttempted AS FLOAT)) > 0 
+                THEN (AVG(CAST(FieldGoalsMade AS FLOAT)) / AVG(CAST(FieldGoalsAttempted AS FLOAT))) * 100
+                ELSE 0
+            END AS FieldGoalPercentage,
+            
+            CASE 
+                WHEN AVG(CAST(ThreePointShotsAttempted AS FLOAT)) > 0 
+                THEN (AVG(CAST(ThreePointShotsMade AS FLOAT)) / AVG(CAST(ThreePointShotsAttempted AS FLOAT))) * 100
+                ELSE 0
+            END AS ThreePointPercentage,
+            
+            CASE 
+                WHEN AVG(CAST(FreeThrowsAttempted AS FLOAT)) > 0 
+                THEN (AVG(CAST(FreeThrowsMade AS FLOAT)) / AVG(CAST(FreeThrowsAttempted AS FLOAT))) * 100
+                ELSE 0
+            END AS FreeThrowPercentage,
+            
+            -- Min/Max Statistics
+            MAX(TotalPoints) AS MaxPoints,
+            MIN(TotalPoints) AS MinPoints,
+            MAX(TotalRebounds) AS MaxRebounds,
+            MIN(TotalRebounds) AS MinRebounds,
+            MAX(Assists) AS MaxAssists,
+            MIN(Assists) AS MinAssists,
+            
+            -- Game Information
+            COUNT(*) AS GamesPlayed,
+            COUNT(CASE WHEN GameLocation = ''Home'' THEN 1 END) AS HomeGames,
+            COUNT(CASE WHEN GameLocation = ''Away'' THEN 1 END) AS AwayGames,
+            
+            -- Recent Performance (last 5 games)
+            AVG(CAST(TotalPoints AS FLOAT)) AS RecentAveragePoints,
+            AVG(CAST(TotalRebounds AS FLOAT)) AS RecentAverageRebounds,
+            AVG(CAST(Assists AS FLOAT)) AS RecentAverageAssists,
+            
+            -- Consistency Metrics
+            STDEV(CAST(TotalPoints AS FLOAT)) AS PointsStandardDeviation,
+            STDEV(CAST(TotalRebounds AS FLOAT)) AS ReboundsStandardDeviation,
+            STDEV(CAST(Assists AS FLOAT)) AS AssistsStandardDeviation,
+            
+            GETDATE() AS LastUpdated
+        FROM PlayerStatsInMatchups
+        GROUP BY 
+            PlayerId,
+            FirstName,
+            LastName,
+            Position,
+            TeamId,
+            EnemyTeamId,
+            EnemyTeamName,
+            EnemyTeamNickName,
+            SeasonId,
+            SeasonYear
+        ')
+        
+        DECLARE @EndTime DATETIME2 = GETDATE();
+        DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime);
+        
+        PRINT 'TeamVsTeamPlayerStats refreshed successfully in ' + CAST(@Duration AS VARCHAR(10)) + ' seconds'
+        
+        -- Log the refresh
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status)
+        VALUES ('TeamVsTeamPlayerStats', 'FULL', @StartTime, @EndTime, @Duration, 'SUCCESS')
+        
+    END TRY
+    BEGIN CATCH
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'Error refreshing TeamVsTeamPlayerStats: ' + @ErrorMessage;
+        
+        -- Log the error
+        INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
+        VALUES ('TeamVsTeamPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+        
+        -- Instead of THROW, just print the error and continue
+        PRINT 'Continuing with other views...'
+    END CATCH
+END;
+
+-- =====================================================
+-- 7. CREATE REFRESH LOG TABLE
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ViewRefreshLog')
 BEGIN

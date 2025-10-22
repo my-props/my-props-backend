@@ -218,7 +218,7 @@ async function getPlayerVsTeamDetailedStatistics(playerId, enemyTeamId, seasonId
                 (PS.TeamId = G.TeamHomeId AND G.TeamVisitorId = @enemyTeamId)
              OR (PS.TeamId = G.TeamVisitorId AND G.TeamHomeId = @enemyTeamId)
               )
-          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
     `;
 
     try {
@@ -254,7 +254,7 @@ async function getPlayerVsPositionStatistics(playerId, enemyPosition, seasonId =
             WHERE PS.PlayerId = @playerId
               AND PS.Active = 1
               AND G.Active = 1
-              ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
+              ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
         )
         SELECT
             P.FirstName,
@@ -351,7 +351,7 @@ async function getPlayerInPositionVsTeamStatistics(playerId, enemyTeamId, positi
                 (PS.TeamId = G.TeamHomeId AND G.TeamVisitorId = @enemyTeamId)
              OR (PS.TeamId = G.TeamVisitorId AND G.TeamHomeId = @enemyTeamId)
               )
-          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
     `;
 
     try {
@@ -410,7 +410,7 @@ async function getPlayerInPositionVsAllTeamsStatistics(playerId, position, seaso
           AND PS.Position = @position
           AND PS.Active = 1
           AND G.Active = 1
-          ${seasonId ? 'AND G.SeasonYear = @seasonId' : ''}
+          ${seasonId ? 'AND G.SeasonId = @seasonId' : ''}
         GROUP BY
             CASE
                 WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId
@@ -663,7 +663,7 @@ async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}
 
     // Add season filter
     if (seasonId) {
-        whereConditions.push('G.SeasonYear = @seasonId');
+        whereConditions.push('G.SeasonId = @seasonId');
     }
 
     // Note: Arena column doesn't exist in Game table, so arena filter is disabled
@@ -758,3 +758,128 @@ async function getPlayerVsTeamGameStatistics(playerId, enemyTeamId, filters = {}
 }
 
 module.exports.getPlayerVsTeamGameStatistics = getPlayerVsTeamGameStatistics;
+
+/**
+ * Get team vs team player statistics - all players from both teams with their stats against each other
+ * @param {number} teamId1 - First team ID
+ * @param {number} teamId2 - Second team ID
+ * @param {Object} filters - Filter options
+ * @param {number} [filters.seasonId] - Season ID filter
+ * @param {string} [filters.position] - Position filter
+ * @param {string} [filters.orderBy] - Order by field (default: 'AveragePoints')
+ * @param {string} [filters.orderDirection] - Order direction (default: 'DESC')
+ * @param {number} [filters.limit] - Limit results
+ */
+async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
+    const {
+        seasonId,
+        position,
+        orderBy = 'AveragePoints',
+        orderDirection = 'DESC',
+        limit
+    } = filters;
+
+    let whereConditions = [
+        '((TeamId = @teamId1 AND EnemyTeamId = @teamId2) OR (TeamId = @teamId2 AND EnemyTeamId = @teamId1))'
+    ];
+
+    // Add season filter
+    if (seasonId) {
+        whereConditions.push('SeasonId = @seasonId');
+    }
+
+    // Add position filter
+    if (position) {
+        whereConditions.push('Position = @position');
+    }
+
+    const query = `
+        SELECT 
+            PlayerId,
+            FirstName,
+            LastName,
+            Position,
+            TeamId,
+            EnemyTeamId,
+            EnemyTeamName,
+            EnemyTeamNickName,
+            SeasonId,
+            SeasonYear,
+            AveragePoints,
+            AverageRebounds,
+            AverageAssists,
+            AverageSteals,
+            AverageBlocks,
+            AverageTurnovers,
+            AveragePointsPlusRebounds,
+            AveragePointsPlusReboundsPlusAssists,
+            AveragePointsPlusAssists,
+            AverageAssistsPlusRebounds,
+            AverageOverPoints,
+            GamesOver20Points,
+            GamesOver25Points,
+            GamesOver30Points,
+            GamesOver35Points,
+            GamesOver40Points,
+            GamesOver5Rebounds,
+            GamesOver10Rebounds,
+            GamesOver15Rebounds,
+            GamesOver5Assists,
+            GamesOver10Assists,
+            GamesOver15Assists,
+            AverageFieldGoalsMade,
+            AverageFieldGoalsAttempted,
+            AverageThreePointShotsMade,
+            AverageThreePointShotsAttempted,
+            AverageFreeThrowsMade,
+            AverageFreeThrowsAttempted,
+            FieldGoalPercentage,
+            ThreePointPercentage,
+            FreeThrowPercentage,
+            MaxPoints,
+            MinPoints,
+            MaxRebounds,
+            MinRebounds,
+            MaxAssists,
+            MinAssists,
+            GamesPlayed,
+            HomeGames,
+            AwayGames,
+            RecentAveragePoints,
+            RecentAverageRebounds,
+            RecentAverageAssists,
+            PointsStandardDeviation,
+            ReboundsStandardDeviation,
+            AssistsStandardDeviation,
+            LastUpdated
+        FROM TeamVsTeamPlayerStats
+        WHERE ${whereConditions.join(' AND ')}
+        ORDER BY ${orderBy} ${orderDirection}
+        ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
+    `;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        request.input('teamId1', teamId1);
+        request.input('teamId2', teamId2);
+        
+        if (seasonId) request.input('seasonId', seasonId);
+        if (position) request.input('position', position);
+
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error getting team vs team player statistics:', error);
+        await errorLogService.logDatabaseError(
+            error,
+            'playerStatisticsRepository.js',
+            null,
+            { function: 'getTeamVsTeamPlayerStatistics', teamId1, teamId2, filters }
+        );
+        throw error;
+    }
+}
+
+module.exports.getTeamVsTeamPlayerStatistics = getTeamVsTeamPlayerStatistics;
