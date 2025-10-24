@@ -7,6 +7,340 @@ This documentation provides comprehensive information about the MyProps Backend 
 
 ---
 
+## 🏀 Today's Games Endpoint
+
+### `GET /api/games/today`
+
+This endpoint retrieves all games scheduled for today with complete team information. Perfect for displaying today's matchups, game schedules, and team details.
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description | Example |
+|-----------|------|----------|-------------|---------|
+| `leagueId` | integer | No | Filter by specific league | `?leagueId=1` |
+| `seasonId` | integer | No | Filter by specific season | `?seasonId=2024` |
+| `status` | string | No | Filter by game status | `?status=Scheduled` |
+| `limit` | integer | No | Limit number of results (default: 8) | `?limit=10` |
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `games` | array | Array of game objects |
+| `totalCount` | integer | Total number of games returned |
+| `filters` | object | Applied filters |
+
+#### Game Object Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `gameId` | integer | Unique game identifier |
+| `seasonId` | integer | Season identifier |
+| `leagueId` | integer | League identifier |
+| `leagueName` | string | League name |
+| `startDate` | string | Game start date/time (ISO 8601) |
+| `endDate` | string | Game end date/time (ISO 8601) |
+| `duration` | string | Game duration |
+| `clock` | string | Current game clock |
+| `isHalftime` | boolean | Whether game is in halftime |
+| `short` | integer | Game short identifier |
+| `status` | string | Game status (Scheduled, In Progress, Finished, etc.) |
+| `currentPeriod` | integer | Current period/quarter |
+| `totalPeriod` | integer | Total periods in game |
+| `endOfPeriod` | boolean | Whether current period has ended |
+| `homeTeam` | object | Home team information |
+| `visitorTeam` | object | Visitor team information |
+
+#### Team Object Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Team unique identifier |
+| `name` | string | Full team name |
+| `nickName` | string | Team nickname |
+| `code` | string | Team abbreviation code |
+| `city` | string | Team city |
+
+#### Example Requests
+
+**1. Get all today's games:**
+```bash
+GET /api/games/today
+```
+
+**2. Get limited number of games:**
+```bash
+GET /api/games/today?limit=5
+```
+
+**3. Get games for specific league:**
+```bash
+GET /api/games/today?leagueId=1
+```
+
+**4. Get games for specific season:**
+```bash
+GET /api/games/today?seasonId=2024
+```
+
+**5. Get only scheduled games:**
+```bash
+GET /api/games/today?status=Scheduled
+```
+
+**6. Combined filters:**
+```bash
+GET /api/games/today?leagueId=1&seasonId=2024&limit=10&status=Scheduled
+```
+
+#### Example Response
+
+```json
+{
+  "games": [
+    {
+      "gameId": 12345,
+      "seasonId": 2024,
+      "leagueId": 1,
+      "leagueName": "NBA",
+      "startDate": "2024-01-15T20:00:00.000Z",
+      "endDate": "2024-01-15T22:30:00.000Z",
+      "duration": "2:30",
+      "clock": "12:00",
+      "isHalftime": false,
+      "short": 1,
+      "status": "Scheduled",
+      "currentPeriod": 1,
+      "totalPeriod": 4,
+      "endOfPeriod": false,
+      "homeTeam": {
+        "id": 1,
+        "name": "Los Angeles Lakers",
+        "nickName": "Lakers",
+        "code": "LAL",
+        "city": "Los Angeles"
+      },
+      "visitorTeam": {
+        "id": 2,
+        "name": "Golden State Warriors",
+        "nickName": "Warriors",
+        "code": "GSW",
+        "city": "San Francisco"
+      }
+    },
+    {
+      "gameId": 12346,
+      "seasonId": 2024,
+      "leagueId": 1,
+      "leagueName": "NBA",
+      "startDate": "2024-01-15T22:30:00.000Z",
+      "endDate": "2024-01-16T01:00:00.000Z",
+      "duration": "2:30",
+      "clock": "00:00",
+      "isHalftime": false,
+      "short": 2,
+      "status": "Scheduled",
+      "currentPeriod": 1,
+      "totalPeriod": 4,
+      "endOfPeriod": false,
+      "homeTeam": {
+        "id": 3,
+        "name": "Boston Celtics",
+        "nickName": "Celtics",
+        "code": "BOS",
+        "city": "Boston"
+      },
+      "visitorTeam": {
+        "id": 4,
+        "name": "Miami Heat",
+        "nickName": "Heat",
+        "code": "MIA",
+        "city": "Miami"
+      }
+    }
+  ],
+  "totalCount": 2,
+  "filters": {}
+}
+```
+
+#### Error Responses
+
+**400 Bad Request:**
+```json
+{
+  "error": "Invalid leagueId parameter"
+}
+```
+
+**400 Bad Request:**
+```json
+{
+  "error": "Invalid limit parameter"
+}
+```
+
+**400 Bad Request:**
+```json
+{
+  "error": "No games found for today"
+}
+```
+
+#### JavaScript Examples
+
+**1. Basic usage:**
+```javascript
+async function getTodaysGames(filters = {}) {
+  try {
+    const params = new URLSearchParams();
+    
+    if (filters.leagueId) params.append('leagueId', filters.leagueId);
+    if (filters.seasonId) params.append('seasonId', filters.seasonId);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.limit) params.append('limit', filters.limit);
+    
+    const response = await fetch(`/api/games/today?${params}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching today\'s games:', error);
+    throw error;
+  }
+}
+
+// Usage
+const allGames = await getTodaysGames();
+const nbaGames = await getTodaysGames({ leagueId: 1, limit: 5 });
+```
+
+**2. React Hook example:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function useTodaysGames(filters = {}) {
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchGames() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            params.append(key, value);
+          }
+        });
+
+        const response = await fetch(`/api/games/today?${params}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setGames(data.games);
+        } else {
+          setError(new Error(data.error || 'Failed to fetch games'));
+        }
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchGames();
+  }, [JSON.stringify(filters)]);
+
+  return { games, loading, error };
+}
+
+// Usage in component
+function TodaysGamesComponent() {
+  const [filters, setFilters] = useState({ limit: 8 });
+  const { games, loading, error } = useTodaysGames(filters);
+
+  if (loading) return <div>Loading today's games...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h2>Today's Games ({games.length})</h2>
+      {games.map(game => (
+        <div key={game.gameId} className="game-card">
+          <h3>{game.visitorTeam.name} @ {game.homeTeam.name}</h3>
+          <p>Time: {new Date(game.startDate).toLocaleTimeString()}</p>
+          <p>Status: {game.status}</p>
+          <p>League: {game.leagueName}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**3. Filter component:**
+```javascript
+function GamesFilter({ onFiltersChange }) {
+  const [filters, setFilters] = useState({
+    leagueId: '',
+    seasonId: '',
+    status: '',
+    limit: 8
+  });
+
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  return (
+    <div className="games-filter">
+      <select 
+        value={filters.leagueId} 
+        onChange={(e) => handleFilterChange('leagueId', e.target.value)}
+      >
+        <option value="">All Leagues</option>
+        <option value="1">NBA</option>
+        <option value="2">WNBA</option>
+      </select>
+      
+      <select 
+        value={filters.seasonId} 
+        onChange={(e) => handleFilterChange('seasonId', e.target.value)}
+      >
+        <option value="">All Seasons</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+      </select>
+      
+      <select 
+        value={filters.status} 
+        onChange={(e) => handleFilterChange('status', e.target.value)}
+      >
+        <option value="">All Statuses</option>
+        <option value="Scheduled">Scheduled</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Finished">Finished</option>
+      </select>
+      
+      <input 
+        type="number" 
+        placeholder="Limit" 
+        value={filters.limit} 
+        onChange={(e) => handleFilterChange('limit', e.target.value)}
+        min="1"
+        max="50"
+      />
+    </div>
+  );
+}
+```
+
+---
+
 ## 🏀 Player vs Team Statistics Endpoint
 
 ### `GET /api/players/statistics`

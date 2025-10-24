@@ -37,7 +37,62 @@ async function getGamesFromLastDays(days) {
   }
 }
 
+async function getTodaysGames(filters = {}) {
+  try {
+    let rows = await gamesRepository.getTodaysGames(filters)
+
+    if (rows.length === 0) {
+      throw new Error("No games found for today")
+    }
+
+    // Transform the data to a more user-friendly format
+    const transformedGames = rows.map(game => ({
+      gameId: game.Id,
+      seasonId: game.SeasonId,
+      leagueId: game.LeagueId,
+      leagueName: game.LeagueName,
+      startDate: game.StartDate,
+      endDate: game.EndDate,
+      duration: game.Duration,
+      clock: game.Clock,
+      isHalftime: game.IsHalftime,
+      short: game.Short,
+      status: game.Status,
+      currentPeriod: game.CurrentPeriod,
+      totalPeriod: game.TotalPeriod,
+      endOfPeriod: game.EndOfPeriod,
+      homeTeam: {
+        id: game.HomeTeamId,
+        name: game.HomeTeamName,
+        nickName: game.HomeTeamNickName,
+        code: game.HomeTeamCode,
+        city: game.HomeTeamCity
+      },
+      visitorTeam: {
+        id: game.VisitorTeamId,
+        name: game.VisitorTeamName,
+        nickName: game.VisitorTeamNickName,
+        code: game.VisitorTeamCode,
+        city: game.VisitorTeamCity
+      }
+    }))
+
+    return {
+      games: transformedGames,
+      totalCount: transformedGames.length,
+      filters: filters
+    }
+  } catch (error) {
+    console.error("Error getting today's games:", error)
+    await errorLogService.logServiceError(error, "gamesService.js", null, {
+      function: "getTodaysGames",
+    })
+    throw error
+  }
+}
+
 module.exports = {
   getNextGames,
   getGamesFromLastDays,
+  getTodaysGames,
 }
