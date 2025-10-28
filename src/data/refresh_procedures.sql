@@ -89,6 +89,8 @@ BEGIN
         -- Log the error
         INSERT INTO ViewRefreshLog (ViewName, RefreshType, StartTime, EndTime, Duration, Status, ErrorMessage)
         VALUES ('PlayerVsPlayerStats', 'FULL', @StartTime, GETDATE(), DATEDIFF(SECOND, @StartTime, GETDATE()), 'ERROR', @ErrorMessage)
+    END CATCH
+    
     -- Refresh TeamVsTeamPlayerStats
     BEGIN TRY
         PRINT 'Refreshing TeamVsTeamPlayerStats...'
@@ -644,7 +646,8 @@ BEGIN
             FirstName,
             LastName,
             Position,
-            TeamId,
+            GameId,
+            (select TEAM_ID from VW_PLAYER_CURRENT_TEAM where PLAYER_ID = PlayerStatsInMatchups.PlayerId) as TeamId,
             CASE 
                 WHEN TeamId = TeamHomeId THEN HomeTeamName
                 ELSE VisitorTeamName
@@ -667,6 +670,7 @@ BEGIN
             AVG(CAST(Blocks AS FLOAT)) AS AverageBlocks,
             AVG(CAST(Turnovers AS FLOAT)) AS AverageTurnovers,
             AVG(CAST(PersonalFouls AS FLOAT)) AS AveragePersonalFouls,
+            AVG(CAST(MinutesPlayed AS FLOAT)) AS AverageMinutesPlayed,
             
             -- Combined Statistics
             AVG(CAST(TotalPoints + TotalRebounds AS FLOAT)) AS AveragePointsPlusRebounds,
@@ -726,6 +730,8 @@ BEGIN
             MIN(TotalRebounds) AS MinRebounds,
             MAX(Assists) AS MaxAssists,
             MIN(Assists) AS MinAssists,
+            MAX(MinutesPlayed) AS MaxMinutesPlayed,
+            MIN(MinutesPlayed) AS MinMinutesPlayed,
             
             -- Game Information
             COUNT(*) AS GamesPlayed,
@@ -749,6 +755,7 @@ BEGIN
             FirstName,
             LastName,
             Position,
+            GameId,
             TeamId,
             CASE 
                 WHEN TeamId = TeamHomeId THEN HomeTeamName

@@ -805,6 +805,7 @@ This endpoint provides comprehensive player statistics for team vs team matchups
 | `AverageBlocks` | number | Average blocks per game |
 | `AverageTurnovers` | number | Average turnovers per game |
 | `AveragePersonalFouls` | number | Average personal fouls per game |
+| `AverageMinutesPlayed` | number | Average minutes played per game |
 | `AveragePointsPlusRebounds` | number | Average points + rebounds |
 | `AveragePointsPlusReboundsPlusAssists` | number | Average points + rebounds + assists |
 | `AveragePointsPlusAssists` | number | Average points + assists |
@@ -830,6 +831,8 @@ This endpoint provides comprehensive player statistics for team vs team matchups
 | `MinRebounds` | number | Minimum rebounds in a game |
 | `MaxAssists` | number | Maximum assists in a game |
 | `MinAssists` | number | Minimum assists in a game |
+| `MaxMinutesPlayed` | number | Maximum minutes played in a game |
+| `MinMinutesPlayed` | number | Minimum minutes played in a game |
 | `GamesPlayed` | integer | Number of games played against opponent |
 | `HomeGames` | integer | Number of home games |
 | `AwayGames` | integer | Number of away games |
@@ -884,6 +887,7 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "AverageBlocks": 0.8,
           "AverageTurnovers": 3.2,
           "AveragePersonalFouls": 2.1,
+          "AverageMinutesPlayed": 38.5,
           "AveragePointsPlusRebounds": 36.7,
           "AveragePointsPlusReboundsPlusAssists": 45.8,
           "AveragePointsPlusAssists": 37.6,
@@ -909,6 +913,8 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "MinRebounds": 3,
           "MaxAssists": 15,
           "MinAssists": 4,
+          "MaxMinutesPlayed": 42,
+          "MinMinutesPlayed": 28,
           "GamesPlayed": 10,
           "HomeGames": 5,
           "AwayGames": 5,
@@ -942,6 +948,7 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "AverageBlocks": 0.3,
           "AverageTurnovers": 2.9,
           "AveragePersonalFouls": 2.5,
+          "AverageMinutesPlayed": 35.8,
           "AveragePointsPlusRebounds": 37.9,
           "AveragePointsPlusReboundsPlusAssists": 45.1,
           "AveragePointsPlusAssists": 39.3,
@@ -967,6 +974,8 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "MinRebounds": 2,
           "MaxAssists": 12,
           "MinAssists": 3,
+          "MaxMinutesPlayed": 41,
+          "MinMinutesPlayed": 29,
           "GamesPlayed": 10,
           "HomeGames": 5,
           "AwayGames": 5,
@@ -1134,6 +1143,7 @@ GET /api/teams/1/vs-all/players?orderBy=AverageRebounds&orderDirection=DESC&limi
         "AverageBlocks": 0.7,
         "AverageTurnovers": 3.5,
         "AveragePersonalFouls": 2.3,
+        "AverageMinutesPlayed": 36.2,
         "AveragePointsPlusRebounds": 33.0,
         "AveragePointsPlusReboundsPlusAssists": 41.1,
         "AveragePointsPlusAssists": 33.3,
@@ -1165,6 +1175,8 @@ GET /api/teams/1/vs-all/players?orderBy=AverageRebounds&orderDirection=DESC&limi
         "MinRebounds": 1,
         "MaxAssists": 17,
         "MinAssists": 2,
+        "MaxMinutesPlayed": 45,
+        "MinMinutesPlayed": 18,
         "GamesPlayed": 65,
         "HomeGames": 33,
         "AwayGames": 32,

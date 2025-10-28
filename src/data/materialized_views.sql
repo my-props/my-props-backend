@@ -416,6 +416,7 @@ SELECT
     AVG(CAST(Blocks AS FLOAT)) AS AverageBlocks,
     AVG(CAST(Turnovers AS FLOAT)) AS AverageTurnovers,
     AVG(CAST(PersonalFouls AS FLOAT)) AS AveragePersonalFouls,
+    AVG(CAST(MinutesPlayed AS FLOAT)) AS AverageMinutesPlayed,
     
     -- Combined Statistics
     AVG(CAST(TotalPoints + TotalRebounds AS FLOAT)) AS AveragePointsPlusRebounds,
@@ -475,6 +476,8 @@ SELECT
     MIN(TotalRebounds) AS MinRebounds,
     MAX(Assists) AS MaxAssists,
     MIN(Assists) AS MinAssists,
+    MAX(MinutesPlayed) AS MaxMinutesPlayed,
+    MIN(MinutesPlayed) AS MinMinutesPlayed,
     
     -- Game Information
     COUNT(*) AS GamesPlayed,

@@ -814,6 +814,7 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
             AverageBlocks,
             AverageTurnovers,
             AveragePersonalFouls,
+            AverageMinutesPlayed,
             AveragePointsPlusRebounds,
             AveragePointsPlusReboundsPlusAssists,
             AveragePointsPlusAssists,
@@ -845,6 +846,8 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
             MinRebounds,
             MaxAssists,
             MinAssists,
+            MaxMinutesPlayed,
+            MinMinutesPlayed,
             GamesPlayed,
             HomeGames,
             AwayGames,
@@ -937,6 +940,7 @@ async function getTeamVsAllTeamsPlayerStatistics(teamId, filters = {}) {
             AVG(AverageBlocks) AS AverageBlocks,
             AVG(AverageTurnovers) AS AverageTurnovers,
             AVG(AveragePersonalFouls) AS AveragePersonalFouls,
+            AVG(AverageMinutesPlayed) AS AverageMinutesPlayed,
             AVG(AveragePointsPlusRebounds) AS AveragePointsPlusRebounds,
             AVG(AveragePointsPlusReboundsPlusAssists) AS AveragePointsPlusReboundsPlusAssists,
             AVG(AveragePointsPlusAssists) AS AveragePointsPlusAssists,
@@ -974,6 +978,8 @@ async function getTeamVsAllTeamsPlayerStatistics(teamId, filters = {}) {
             MIN(MinRebounds) AS MinRebounds,
             MAX(MaxAssists) AS MaxAssists,
             MIN(MinAssists) AS MinAssists,
+            MAX(MaxMinutesPlayed) AS MaxMinutesPlayed,
+            MIN(MinMinutesPlayed) AS MinMinutesPlayed,
             
             -- Total games across all opponents
             SUM(GamesPlayed) AS GamesPlayed,

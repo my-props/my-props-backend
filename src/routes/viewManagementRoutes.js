@@ -40,10 +40,13 @@ router.post("/refresh/:viewName", async (req, res) => {
       case 'playervsplayerstats':
         result = await viewManagementService.refreshPlayerVsPlayerStats();
         break;
+      case 'teamvsteamplayerstats':
+        result = await viewManagementService.refreshTeamVsTeamPlayerStats();
+        break;
       default:
         return res.status(400).json({
           success: false,
-          error: "Invalid view name. Valid options: playervsteamstats, playerpositionstats, playervspositionstats, playervsplayerstats"
+          error: "Invalid view name. Valid options: playervsteamstats, playerpositionstats, playervspositionstats, playervsplayerstats, teamvsteamplayerstats"
         });
     }
 
