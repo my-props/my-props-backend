@@ -11,7 +11,9 @@ This documentation provides comprehensive information about the MyProps Backend 
 
 ### `GET /api/games/today`
 
-This endpoint retrieves all games scheduled for today with complete team information. Perfect for displaying today's matchups, game schedules, and team details.
+This endpoint retrieves today's games along with the next 8 upcoming games and previous 8 completed games in a single response. Perfect for displaying today's matchups, game schedules, upcoming games, and recent game history all on the same page. This single API call eliminates the need for multiple requests and provides all the data needed for a complete games overview.
+
+> **Note on Scores:** Score data is automatically included for previous games (completed games) in the `previous8Games` response. Scores include total points, quarter-by-quarter breakdown (Q1-Q4), and win/loss indicators. Scores are only present for completed games and will be `null` for scheduled or upcoming games.
 
 #### Query Parameters
 
@@ -26,8 +28,9 @@ This endpoint retrieves all games scheduled for today with complete team informa
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `games` | array | Array of game objects |
-| `totalCount` | integer | Total number of games returned |
+| `todayGames` | object | Today's games with totalCount |
+| `next8Games` | object | Next 8 upcoming games with totalCount |
+| `previous8Games` | object | Previous 8 completed games with totalCount |
 | `filters` | object | Applied filters |
 
 #### Game Object Fields
@@ -60,6 +63,19 @@ This endpoint retrieves all games scheduled for today with complete team informa
 | `nickName` | string | Team nickname |
 | `code` | string | Team abbreviation code |
 | `city` | string | Team city |
+| `score` | object (optional) | Team score (only present for completed games in previous8Games) |
+
+#### Score Object Fields (only for previous games)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total` | integer | Total points scored |
+| `q1` | integer | Points scored in quarter 1 |
+| `q2` | integer | Points scored in quarter 2 |
+| `q3` | integer | Points scored in quarter 3 |
+| `q4` | integer | Points scored in quarter 4 |
+| `win` | integer | Win flag (1 if won, 0 if lost) |
+| `loss` | integer | Loss flag (1 if lost, 0 if won) |
 
 #### Example Requests
 
@@ -97,69 +113,129 @@ GET /api/games/today?leagueId=1&seasonId=2024&limit=10&status=Scheduled
 
 ```json
 {
-  "games": [
-    {
-      "gameId": 12345,
-      "seasonId": 2024,
-      "leagueId": 1,
-      "leagueName": "NBA",
-      "startDate": "2024-01-15T20:00:00.000Z",
-      "endDate": "2024-01-15T22:30:00.000Z",
-      "duration": "2:30",
-      "clock": "12:00",
-      "isHalftime": false,
-      "short": 1,
-      "status": "Scheduled",
-      "currentPeriod": 1,
-      "totalPeriod": 4,
-      "endOfPeriod": false,
-      "homeTeam": {
-        "id": 1,
-        "name": "Los Angeles Lakers",
-        "nickName": "Lakers",
-        "code": "LAL",
-        "city": "Los Angeles"
-      },
-      "visitorTeam": {
-        "id": 2,
-        "name": "Golden State Warriors",
-        "nickName": "Warriors",
-        "code": "GSW",
-        "city": "San Francisco"
+  "todayGames": {
+    "games": [
+      {
+        "gameId": 12345,
+        "seasonId": 2024,
+        "leagueId": 1,
+        "leagueName": "NBA",
+        "startDate": "2024-01-15T20:00:00.000Z",
+        "endDate": "2024-01-15T22:30:00.000Z",
+        "duration": "2:30",
+        "clock": "12:00",
+        "isHalftime": false,
+        "short": 1,
+        "status": "Scheduled",
+        "currentPeriod": 1,
+        "totalPeriod": 4,
+        "endOfPeriod": false,
+        "homeTeam": {
+          "id": 1,
+          "name": "Los Angeles Lakers",
+          "nickName": "Lakers",
+          "code": "LAL",
+          "city": "Los Angeles"
+        },
+        "visitorTeam": {
+          "id": 2,
+          "name": "Golden State Warriors",
+          "nickName": "Warriors",
+          "code": "GSW",
+          "city": "San Francisco"
+        }
       }
-    },
-    {
-      "gameId": 12346,
-      "seasonId": 2024,
-      "leagueId": 1,
-      "leagueName": "NBA",
-      "startDate": "2024-01-15T22:30:00.000Z",
-      "endDate": "2024-01-16T01:00:00.000Z",
-      "duration": "2:30",
-      "clock": "00:00",
-      "isHalftime": false,
-      "short": 2,
-      "status": "Scheduled",
-      "currentPeriod": 1,
-      "totalPeriod": 4,
-      "endOfPeriod": false,
-      "homeTeam": {
-        "id": 3,
-        "name": "Boston Celtics",
-        "nickName": "Celtics",
-        "code": "BOS",
-        "city": "Boston"
-      },
-      "visitorTeam": {
-        "id": 4,
-        "name": "Miami Heat",
-        "nickName": "Heat",
-        "code": "MIA",
-        "city": "Miami"
+    ],
+    "totalCount": 1
+  },
+  "next8Games": {
+    "games": [
+      {
+        "gameId": 12346,
+        "seasonId": 2024,
+        "leagueId": 1,
+        "leagueName": "NBA",
+        "startDate": "2024-01-16T20:00:00.000Z",
+        "endDate": "2024-01-16T22:30:00.000Z",
+        "duration": "2:30",
+        "clock": "00:00",
+        "isHalftime": false,
+        "short": 2,
+        "status": "Scheduled",
+        "currentPeriod": 1,
+        "totalPeriod": 4,
+        "endOfPeriod": false,
+        "homeTeam": {
+          "id": 3,
+          "name": "Boston Celtics",
+          "nickName": "Celtics",
+          "code": "BOS",
+          "city": "Boston"
+        },
+        "visitorTeam": {
+          "id": 4,
+          "name": "Miami Heat",
+          "nickName": "Heat",
+          "code": "MIA",
+          "city": "Miami"
+        }
       }
-    }
-  ],
-  "totalCount": 2,
+    ],
+    "totalCount": 1
+  },
+  "previous8Games": {
+    "games": [
+      {
+        "gameId": 12344,
+        "seasonId": 2024,
+        "leagueId": 1,
+        "leagueName": "NBA",
+        "startDate": "2024-01-14T20:00:00.000Z",
+        "endDate": "2024-01-14T22:30:00.000Z",
+        "duration": "2:30",
+        "clock": "00:00",
+        "isHalftime": false,
+        "short": 3,
+        "status": "Finished",
+        "currentPeriod": 4,
+        "totalPeriod": 4,
+        "endOfPeriod": true,
+        "homeTeam": {
+          "id": 5,
+          "name": "Chicago Bulls",
+          "nickName": "Bulls",
+          "code": "CHI",
+          "city": "Chicago",
+          "score": {
+            "total": 112,
+            "q1": 28,
+            "q2": 32,
+            "q3": 25,
+            "q4": 27,
+            "win": 1,
+            "loss": 0
+          }
+        },
+        "visitorTeam": {
+          "id": 6,
+          "name": "Detroit Pistons",
+          "nickName": "Pistons",
+          "code": "DET",
+          "city": "Detroit",
+          "score": {
+            "total": 108,
+            "q1": 25,
+            "q2": 30,
+            "q3": 26,
+            "q4": 27,
+            "win": 0,
+            "loss": 1
+          }
+        }
+      }
+    ],
+    "totalCount": 1
+  },
   "filters": {}
 }
 ```
@@ -210,8 +286,10 @@ async function getTodaysGames(filters = {}) {
 }
 
 // Usage
-const allGames = await getTodaysGames();
-const nbaGames = await getTodaysGames({ leagueId: 1, limit: 5 });
+const gameData = await getTodaysGames();
+// Access today's games: gameData.todayGames.games
+// Access next 8 games: gameData.next8Games.games
+// Access previous 8 games: gameData.previous8Games.games
 ```
 
 **2. React Hook example:**
@@ -219,7 +297,9 @@ const nbaGames = await getTodaysGames({ leagueId: 1, limit: 5 });
 import { useState, useEffect } from 'react';
 
 function useTodaysGames(filters = {}) {
-  const [games, setGames] = useState([]);
+  const [todayGames, setTodayGames] = useState([]);
+  const [nextGames, setNextGames] = useState([]);
+  const [previousGames, setPreviousGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -239,7 +319,9 @@ function useTodaysGames(filters = {}) {
         const data = await response.json();
         
         if (response.ok) {
-          setGames(data.games);
+          setTodayGames(data.todayGames.games);
+          setNextGames(data.next8Games.games);
+          setPreviousGames(data.previous8Games.games);
         } else {
           setError(new Error(data.error || 'Failed to fetch games'));
         }
@@ -722,6 +804,7 @@ This endpoint provides comprehensive player statistics for team vs team matchups
 | `AverageSteals` | number | Average steals per game |
 | `AverageBlocks` | number | Average blocks per game |
 | `AverageTurnovers` | number | Average turnovers per game |
+| `AveragePersonalFouls` | number | Average personal fouls per game |
 | `AveragePointsPlusRebounds` | number | Average points + rebounds |
 | `AveragePointsPlusReboundsPlusAssists` | number | Average points + rebounds + assists |
 | `AveragePointsPlusAssists` | number | Average points + assists |
@@ -800,6 +883,7 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "AverageSteals": 1.3,
           "AverageBlocks": 0.8,
           "AverageTurnovers": 3.2,
+          "AveragePersonalFouls": 2.1,
           "AveragePointsPlusRebounds": 36.7,
           "AveragePointsPlusReboundsPlusAssists": 45.8,
           "AveragePointsPlusAssists": 37.6,
@@ -857,6 +941,7 @@ GET /api/teams/1/vs/2/players?orderBy=AverageRebounds&orderDirection=DESC&limit=
           "AverageSteals": 1.8,
           "AverageBlocks": 0.3,
           "AverageTurnovers": 2.9,
+          "AveragePersonalFouls": 2.5,
           "AveragePointsPlusRebounds": 37.9,
           "AveragePointsPlusReboundsPlusAssists": 45.1,
           "AveragePointsPlusAssists": 39.3,

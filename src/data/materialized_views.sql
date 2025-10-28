@@ -353,26 +353,26 @@ PlayerStatsInMatchups AS (
     WHERE PS.Active = 1
       AND P.Active = 1
 )
-        SELECT 
-            PlayerId,
-            FirstName,
-            LastName,
-            Position,
-            TeamId,
-            CASE 
-                WHEN TeamId = TeamHomeId THEN HomeTeamName
-                ELSE VisitorTeamName
-            END AS TeamName,
-            CASE 
-                WHEN TeamId = TeamHomeId THEN HomeTeamNickName
-                ELSE VisitorTeamNickName
-            END AS TeamNickName,
-            EnemyTeamId,
-            EnemyTeamName,
-            EnemyTeamNickName,
-            SeasonId,
-            SeasonYear,
-    
+SELECT 
+    PlayerId,
+    FirstName,
+    LastName,
+    Position,
+    TeamId,
+    CASE 
+        WHEN TeamId = TeamHomeId THEN HomeTeamName
+        ELSE VisitorTeamName
+    END AS TeamName,
+    CASE 
+        WHEN TeamId = TeamHomeId THEN HomeTeamNickName
+        ELSE VisitorTeamNickName
+    END AS TeamNickName,
+    EnemyTeamId,
+    EnemyTeamName,
+    EnemyTeamNickName,
+    SeasonId,
+    SeasonYear,
+
     -- Basic Statistics
     AVG(CAST(TotalPoints AS FLOAT)) AS AveragePoints,
     AVG(CAST(TotalRebounds AS FLOAT)) AS AverageRebounds,
@@ -380,6 +380,7 @@ PlayerStatsInMatchups AS (
     AVG(CAST(Steals AS FLOAT)) AS AverageSteals,
     AVG(CAST(Blocks AS FLOAT)) AS AverageBlocks,
     AVG(CAST(Turnovers AS FLOAT)) AS AverageTurnovers,
+    AVG(CAST(PersonalFouls AS FLOAT)) AS AveragePersonalFouls,
     
     -- Combined Statistics
     AVG(CAST(TotalPoints + TotalRebounds AS FLOAT)) AS AveragePointsPlusRebounds,
@@ -457,24 +458,22 @@ PlayerStatsInMatchups AS (
     
     GETDATE() AS LastUpdated
 FROM PlayerStatsInMatchups
-        GROUP BY 
-            PlayerId,
-            FirstName,
-            LastName,
-            Position,
-            TeamId,
-            CASE 
-                WHEN TeamId = TeamHomeId THEN HomeTeamName
-                ELSE VisitorTeamName
-            END,
-            CASE 
-                WHEN TeamId = TeamHomeId THEN HomeTeamNickName
-                ELSE VisitorTeamNickName
-            END,
-            EnemyTeamId,
-            EnemyTeamName,
-            EnemyTeamNickName,
-            SeasonId,
-            SeasonYear;
+GROUP BY 
+    PlayerId,
+    FirstName,
+    LastName,
+    Position,
+    TeamId,
+    TeamHomeId,
+    TeamVisitorId,
+    HomeTeamName,
+    HomeTeamNickName,
+    VisitorTeamName,
+    VisitorTeamNickName,
+    EnemyTeamId,
+    EnemyTeamName,
+    EnemyTeamNickName,
+    SeasonId,
+    SeasonYear;
 
 PRINT 'Materialized views created successfully!';
