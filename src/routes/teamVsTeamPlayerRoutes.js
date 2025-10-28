@@ -322,4 +322,134 @@ router.get('/:teamId/vs-all/players', asyncHandler(async (req, res) => {
     }
 }));
 
+/**
+ * @swagger
+ * /api/teams/{teamId1}/and/{teamId2}/vs-all/players:
+ *   get:
+ *     summary: Get both teams' players with their aggregated statistics against all teams
+ *     tags: [Teams, Players]
+ *     parameters:
+ *       - in: path
+ *         name: teamId1
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: First team ID
+ *       - in: path
+ *         name: teamId2
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Second team ID
+ *       - in: query
+ *         name: seasonId
+ *         schema:
+ *           type: integer
+ *         description: Season ID filter
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *           enum: [PG, SG, SF, PF, C]
+ *         description: Position filter
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *         description: Field to order by (default: AveragePoints)
+ *       - in: query
+ *         name: orderDirection
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Order direction (default: DESC)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Limit number of results
+ *     responses:
+ *       200:
+ *         description: Both teams vs all teams player statistics retrieved successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:teamId1/and/:teamId2/vs-all/players', asyncHandler(async (req, res) => {
+    try {
+        const { teamId1, teamId2 } = req.params;
+        const {
+            seasonId,
+            position,
+            orderBy,
+            orderDirection,
+            limit
+        } = req.query;
+
+        // Validate required parameters
+        if (!teamId1 || !teamId2) {
+            throw new ValidationError('Both team IDs are required');
+        }
+
+        // Build filters object
+        const filters = {};
+        if (seasonId) filters.seasonId = parseInt(seasonId);
+        if (position) filters.position = position;
+        if (orderBy) filters.orderBy = orderBy;
+        if (orderDirection) filters.orderDirection = orderDirection;
+        if (limit) filters.limit = parseInt(limit);
+
+        // Get data for both teams in parallel
+        const [team1Data, team2Data] = await Promise.all([
+            playerStatisticsService.getTeamVsAllTeamsPlayerStatistics(
+                parseInt(teamId1),
+                filters
+            ),
+            playerStatisticsService.getTeamVsAllTeamsPlayerStatistics(
+                parseInt(teamId2),
+                filters
+            )
+        ]);
+
+        // Get team info from first player record
+        const team1Name = team1Data.length > 0 ? team1Data[0].TeamName : 'Unknown';
+        const team1NickName = team1Data.length > 0 ? team1Data[0].TeamNickName : 'Unknown';
+        const team2Name = team2Data.length > 0 ? team2Data[0].TeamName : 'Unknown';
+        const team2NickName = team2Data.length > 0 ? team2Data[0].TeamNickName : 'Unknown';
+
+        // Return response
+        res.status(200).json({
+            success: true,
+            data: {
+                team1: {
+                    teamId: parseInt(teamId1),
+                    teamName: team1Name,
+                    teamNickName: team1NickName,
+                    players: team1Data,
+                    totalPlayers: team1Data.length
+                },
+                team2: {
+                    teamId: parseInt(teamId2),
+                    teamName: team2Name,
+                    teamNickName: team2NickName,
+                    players: team2Data,
+                    totalPlayers: team2Data.length
+                },
+                totalPlayers: team1Data.length + team2Data.length,
+                filters: filters
+            }
+        });
+
+    } catch (error) {
+        await errorLogService.logRouteError(error, 'teamVsTeamPlayerRoutes.js', {
+            route: '/:teamId1/and/:teamId2/vs-all/players',
+            method: 'GET',
+            params: req.params,
+            query: req.query
+        });
+        throw error;
+    }
+}));
+
 module.exports = router;

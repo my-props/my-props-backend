@@ -1308,6 +1308,279 @@ function LakersStats() {
 
 ---
 
+## 🔄 Two Teams vs All Teams Endpoint
+
+### `GET /api/teams/{teamId1}/and/{teamId2}/vs-all/players`
+
+This endpoint provides a **single API call** to get both teams' aggregated statistics against all teams at once. Perfect for toggling between "Team vs Team" view and "Team vs All Teams" view in your frontend.
+
+> **Use Case:** When your frontend component has 2 team IDs stored and you want to toggle between:
+> - **Team vs Team view**: Shows stats from games where the two teams played each other
+> - **Team vs All Teams view**: Shows each team's aggregated stats against all other teams
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `teamId1` | integer | ✅ Yes | First team ID |
+| `teamId2` | integer | ✅ Yes | Second team ID |
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `seasonId` | integer | No | Season ID filter |
+| `position` | string | No | Position filter (PG, SG, SF, PF, C) |
+| `orderBy` | string | No | Field to order by (default: AveragePoints) |
+| `orderDirection` | string | No | Order direction: ASC or DESC (default: DESC) |
+| `limit` | integer | No | Limit number of results |
+
+#### Response Structure
+
+```json
+{
+  "success": true,
+  "data": {
+    "team1": {
+      "teamId": 1,
+      "teamName": "Los Angeles Lakers",
+      "teamNickName": "Lakers",
+      "players": [...],
+      "totalPlayers": 15
+    },
+    "team2": {
+      "teamId": 2,
+      "teamName": "Los Angeles Clippers",
+      "teamNickName": "Clippers",
+      "players": [...],
+      "totalPlayers": 14
+    },
+    "totalPlayers": 29,
+    "filters": {}
+  }
+}
+```
+
+#### Example Requests
+
+**1. Get Lakers and Clippers vs all teams statistics:**
+```bash
+GET /api/teams/1/and/2/vs-all/players
+```
+
+**2. Filter by season:**
+```bash
+GET /api/teams/1/and/2/vs-all/players?seasonId=2024
+```
+
+**3. Filter by position:**
+```bash
+GET /api/teams/1/and/2/vs-all/players?position=PG
+```
+
+#### JavaScript Examples
+
+**1. Toggle between Team vs Team and Team vs All Teams:**
+```javascript
+const TOGGLE_MODES = {
+  TEAM_VS_TEAM: 'team-vs-team',
+  TEAM_VS_ALL: 'team-vs-all'
+};
+
+async function fetchPlayerStats(teamId1, teamId2, mode, filters = {}) {
+  const params = new URLSearchParams();
+  
+  if (filters.seasonId) params.append('seasonId', filters.seasonId);
+  if (filters.position) params.append('position', filters.position);
+  if (filters.orderBy) params.append('orderBy', filters.orderBy);
+  if (filters.orderDirection) params.append('orderDirection', filters.orderDirection);
+  if (filters.limit) params.append('limit', filters.limit);
+
+  let url;
+  
+  if (mode === TOGGLE_MODES.TEAM_VS_TEAM) {
+    // Lakers vs Clippers (direct matchup)
+    url = `/api/teams/${teamId1}/vs/${teamId2}/players?${params}`;
+  } else {
+    // Lakers vs All Teams & Clippers vs All Teams
+    url = `/api/teams/${teamId1}/and/${teamId2}/vs-all/players?${params}`;
+  }
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+const teamStats = await fetchPlayerStats(1, 2, TOGGLE_MODES.TEAM_VS_TEAM);
+// vs.
+const allStats = await fetchPlayerStats(1, 2, TOGGLE_MODES.TEAM_VS_ALL);
+```
+
+**2. React Component with Toggle Switch:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function TeamComparison({ teamId1, teamId2 }) {
+  const [mode, setMode] = useState('team-vs-team'); // or 'team-vs-all'
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        
+        const url = mode === 'team-vs-team'
+          ? `/api/teams/${teamId1}/vs/${teamId2}/players?${params}`
+          : `/api/teams/${teamId1}/and/${teamId2}/vs-all/players?${params}`;
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError(new Error('Failed to fetch data'));
+        }
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (teamId1 && teamId2) {
+      fetchData();
+    }
+  }, [teamId1, teamId2, mode]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <div className="toggle-switch">
+        <button 
+          onClick={() => setMode('team-vs-team')}
+          className={mode === 'team-vs-team' ? 'active' : ''}
+        >
+          Team vs Team
+        </button>
+        <button 
+          onClick={() => setMode('team-vs-all')}
+          className={mode === 'team-vs-all' ? 'active' : ''}
+        >
+          Team vs All
+        </button>
+      </div>
+
+      {mode === 'team-vs-team' ? (
+        // Team vs Team view
+        <div>
+          <h2>{data.team1.teamName} vs {data.team2.teamName}</h2>
+          <div className="two-columns">
+            <TeamTable title={data.team1.teamName} players={data.team1.players} />
+            <TeamTable title={data.team2.teamName} players={data.team2.players} />
+          </div>
+        </div>
+      ) : (
+        // Team vs All Teams view
+        <div>
+          <div className="two-columns">
+            <div>
+              <h2>{data.team1.teamName} vs All Teams</h2>
+              <TeamTable 
+                title={data.team1.teamName} 
+                players={data.team1.players}
+                showCurrentTeamMode={true}
+              />
+            </div>
+            <div>
+              <h2>{data.team2.teamName} vs All Teams</h2>
+              <TeamTable 
+                title={data.team2.teamName} 
+                players={data.team2.players}
+                showCurrentTeamMode={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**3. Vue Component Example:**
+```javascript
+export default {
+  data() {
+    return {
+      teamId1: 1,
+      teamId2: 2,
+      mode: 'team-vs-team', // or 'team-vs-all'
+      data: null,
+      loading: false,
+      error: null
+    };
+  },
+  async mounted() {
+    await this.fetchStats();
+  },
+  watch: {
+    mode() {
+      this.fetchStats();
+    }
+  },
+  methods: {
+    async fetchStats() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const url = this.mode === 'team-vs-team'
+          ? `/api/teams/${this.teamId1}/vs/${this.teamId2}/players`
+          : `/api/teams/${this.teamId1}/and/${this.teamId2}/vs-all/players`;
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+          this.data = result.data;
+        } else {
+          this.error = 'Failed to fetch data';
+        }
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+    toggleMode(newMode) {
+      this.mode = newMode;
+    }
+  }
+}
+```
+
+#### Differences
+
+| Feature | Team vs Team | Team vs All Teams |
+|---------|--------------|-------------------|
+| **Endpoint** | `/api/teams/{id1}/vs/{id2}/players` | `/api/teams/{id1}/and/{id2}/vs-all/players` |
+| **Shows** | Direct matchup statistics | Aggregated stats vs all opponents |
+| **Use Case** | Head-to-head comparison | Overall team performance |
+| **Response** | Split by team1/team2 | Split by team1/team2 (aggregated) |
+
+---
+
 #### JavaScript Examples
 
 **1. Basic team vs team statistics:**
