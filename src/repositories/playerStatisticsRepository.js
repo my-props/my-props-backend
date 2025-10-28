@@ -813,6 +813,7 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
             AverageSteals,
             AverageBlocks,
             AverageTurnovers,
+            AveragePersonalFouls,
             AveragePointsPlusRebounds,
             AveragePointsPlusReboundsPlusAssists,
             AveragePointsPlusAssists,
@@ -866,7 +867,7 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
 
         request.input('teamId1', teamId1);
         request.input('teamId2', teamId2);
-        
+
         if (seasonId) request.input('seasonId', seasonId);
         if (position) request.input('position', position);
 

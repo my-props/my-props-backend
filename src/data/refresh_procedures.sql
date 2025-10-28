@@ -666,6 +666,7 @@ BEGIN
             AVG(CAST(Steals AS FLOAT)) AS AverageSteals,
             AVG(CAST(Blocks AS FLOAT)) AS AverageBlocks,
             AVG(CAST(Turnovers AS FLOAT)) AS AverageTurnovers,
+            AVG(CAST(PersonalFouls AS FLOAT)) AS AveragePersonalFouls,
             
             -- Combined Statistics
             AVG(CAST(TotalPoints + TotalRebounds AS FLOAT)) AS AveragePointsPlusRebounds,
