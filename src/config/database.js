@@ -11,6 +11,8 @@ const config = {
     encrypt: true,
     trustServerCertificate: true,
   },
+  connectionTimeout: 60000,
+  requestTimeout: 60000
 }
 
 let pool
