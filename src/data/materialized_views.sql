@@ -272,7 +272,41 @@ WHERE PS1.Active = 1
   AND P2.Active = 1;
 
 -- =====================================================
--- 5. TEAM VS TEAM PLAYER STATISTICS VIEW
+-- 5. PLAYER CURRENT TEAM VIEW
+-- =====================================================
+-- Drop the view if it exists
+IF EXISTS (SELECT * FROM sys.views WHERE name = 'VW_PLAYER_CURRENT_TEAM')
+    DROP VIEW VW_PLAYER_CURRENT_TEAM;
+
+-- Create the view
+CREATE VIEW VW_PLAYER_CURRENT_TEAM AS
+SELECT
+    P.Id AS PLAYER_ID,
+    P.FirstName,
+    P.LastName,
+    T.Id AS TEAM_ID,
+    T.Name AS TEAM_NAME,
+    P.Photo AS PLAYER_PHOTO,
+    LastTeam.PlayerStatsId AS PLAYERSTATS_ID,
+    LastTeam.StartDate AS LAST_GAME_DATE
+FROM Player AS P
+CROSS APPLY (
+    SELECT TOP 1
+        PS.Id AS PlayerStatsId,
+        PS.TeamId,
+        G.StartDate
+    FROM PlayerStats AS PS
+    INNER JOIN Game AS G ON G.Id = PS.GameId
+    WHERE PS.PlayerId = P.Id
+      AND PS.Active = 1
+      AND G.Active = 1
+    ORDER BY G.StartDate DESC, G.Id DESC, PS.Id DESC
+) AS LastTeam
+INNER JOIN Team AS T ON T.Id = LastTeam.TeamId
+WHERE T.Active = 1;
+
+-- =====================================================
+-- 6. TEAM VS TEAM PLAYER STATISTICS VIEW
 -- =====================================================
 -- Drop the view if it exists
 IF EXISTS (SELECT * FROM sys.views WHERE name = 'TeamVsTeamPlayerStats')
@@ -358,7 +392,8 @@ SELECT
     FirstName,
     LastName,
     Position,
-    TeamId,
+    GameId,
+    (select TEAM_ID from VW_PLAYER_CURRENT_TEAM where PLAYER_ID = PlayerStatsInMatchups.PlayerId) as TeamId,
     CASE 
         WHEN TeamId = TeamHomeId THEN HomeTeamName
         ELSE VisitorTeamName
@@ -463,6 +498,7 @@ GROUP BY
     FirstName,
     LastName,
     Position,
+    GameId,
     TeamId,
     TeamHomeId,
     TeamVisitorId,

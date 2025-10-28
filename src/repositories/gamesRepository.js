@@ -80,7 +80,8 @@ async function getTodaysGames(filters = {}) {
       AND g.Active = 1
       AND ht.Active = 1
       AND vt.Active = 1
-      AND l.Active = 1`
+      AND l.Active = 1
+      AND g.Status != 'Finished'`
 
   // Add filters if provided
   if (filters.leagueId) {
@@ -155,7 +156,7 @@ async function getNext8Games(filters = {}) {
     INNER JOIN Team ht ON g.TeamHomeId = ht.Id
     INNER JOIN Team vt ON g.TeamVisitorId = vt.Id
     INNER JOIN League l ON g.LeagueId = l.Id
-    WHERE CAST(g.StartDate AS DATE) > CAST(GETDATE() AS DATE)
+    WHERE CAST(g.StartDate AS DATE) >= CAST(GETDATE() AS DATE) AND g.Status = 'Scheduled' 
       AND g.Active = 1
       AND ht.Active = 1
       AND vt.Active = 1

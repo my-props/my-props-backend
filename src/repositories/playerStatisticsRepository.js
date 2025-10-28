@@ -886,3 +886,148 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
 }
 
 module.exports.getTeamVsTeamPlayerStatistics = getTeamVsTeamPlayerStatistics;
+
+/**
+ * Get team vs all teams player statistics - aggregated stats for all players from a team across all opponents
+ * @param {number} teamId - Team ID
+ * @param {Object} filters - Filter options
+ * @param {number} [filters.seasonId] - Season ID filter
+ * @param {string} [filters.position] - Position filter
+ * @param {string} [filters.orderBy] - Order by field (default: 'AveragePoints')
+ * @param {string} [filters.orderDirection] - Order direction (default: 'DESC')
+ * @param {number} [filters.limit] - Limit results
+ */
+async function getTeamVsAllTeamsPlayerStatistics(teamId, filters = {}) {
+    const {
+        seasonId,
+        position,
+        orderBy = 'AveragePoints',
+        orderDirection = 'DESC',
+        limit
+    } = filters;
+
+    let whereConditions = ['TeamId = @teamId'];
+
+    // Add season filter
+    if (seasonId) {
+        whereConditions.push('SeasonId = @seasonId');
+    }
+
+    // Add position filter
+    if (position) {
+        whereConditions.push('Position = @position');
+    }
+
+    // Aggregated query across all opponents
+    const query = `
+        SELECT 
+            PlayerId,
+            FirstName,
+            LastName,
+            Position,
+            TeamId,
+            TeamName,
+            TeamNickName,
+            
+            -- Aggregated Statistics across all opponents
+            AVG(AveragePoints) AS AveragePoints,
+            AVG(AverageRebounds) AS AverageRebounds,
+            AVG(AverageAssists) AS AverageAssists,
+            AVG(AverageSteals) AS AverageSteals,
+            AVG(AverageBlocks) AS AverageBlocks,
+            AVG(AverageTurnovers) AS AverageTurnovers,
+            AVG(AveragePersonalFouls) AS AveragePersonalFouls,
+            AVG(AveragePointsPlusRebounds) AS AveragePointsPlusRebounds,
+            AVG(AveragePointsPlusReboundsPlusAssists) AS AveragePointsPlusReboundsPlusAssists,
+            AVG(AveragePointsPlusAssists) AS AveragePointsPlusAssists,
+            AVG(AverageAssistsPlusRebounds) AS AverageAssistsPlusRebounds,
+            AVG(AverageOverPoints) AS AverageOverPoints,
+            
+            -- Sum of games over thresholds across all opponents
+            SUM(GamesOver20Points) AS GamesOver20Points,
+            SUM(GamesOver25Points) AS GamesOver25Points,
+            SUM(GamesOver30Points) AS GamesOver30Points,
+            SUM(GamesOver35Points) AS GamesOver35Points,
+            SUM(GamesOver40Points) AS GamesOver40Points,
+            SUM(GamesOver5Rebounds) AS GamesOver5Rebounds,
+            SUM(GamesOver10Rebounds) AS GamesOver10Rebounds,
+            SUM(GamesOver15Rebounds) AS GamesOver15Rebounds,
+            SUM(GamesOver5Assists) AS GamesOver5Assists,
+            SUM(GamesOver10Assists) AS GamesOver10Assists,
+            SUM(GamesOver15Assists) AS GamesOver15Assists,
+            
+            -- Shooting Statistics
+            AVG(AverageFieldGoalsMade) AS AverageFieldGoalsMade,
+            AVG(AverageFieldGoalsAttempted) AS AverageFieldGoalsAttempted,
+            AVG(AverageThreePointShotsMade) AS AverageThreePointShotsMade,
+            AVG(AverageThreePointShotsAttempted) AS AverageThreePointShotsAttempted,
+            AVG(AverageFreeThrowsMade) AS AverageFreeThrowsMade,
+            AVG(AverageFreeThrowsAttempted) AS AverageFreeThrowsAttempted,
+            AVG(FieldGoalPercentage) AS FieldGoalPercentage,
+            AVG(ThreePointPercentage) AS ThreePointPercentage,
+            AVG(FreeThrowPercentage) AS FreeThrowPercentage,
+            
+            -- Min/Max Statistics (taking overall max/min across all opponents)
+            MAX(MaxPoints) AS MaxPoints,
+            MIN(MinPoints) AS MinPoints,
+            MAX(MaxRebounds) AS MaxRebounds,
+            MIN(MinRebounds) AS MinRebounds,
+            MAX(MaxAssists) AS MaxAssists,
+            MIN(MinAssists) AS MinAssists,
+            
+            -- Total games across all opponents
+            SUM(GamesPlayed) AS GamesPlayed,
+            SUM(HomeGames) AS HomeGames,
+            SUM(AwayGames) AS AwayGames,
+            
+            -- Recent average (across all opponents)
+            AVG(RecentAveragePoints) AS RecentAveragePoints,
+            AVG(RecentAverageRebounds) AS RecentAverageRebounds,
+            AVG(RecentAverageAssists) AS RecentAverageAssists,
+            
+            -- Average standard deviation
+            AVG(PointsStandardDeviation) AS PointsStandardDeviation,
+            AVG(ReboundsStandardDeviation) AS ReboundsStandardDeviation,
+            AVG(AssistsStandardDeviation) AS AssistsStandardDeviation,
+            
+            GETDATE() AS LastUpdated
+        FROM TeamVsTeamPlayerStats
+        WHERE ${whereConditions.join(' AND ')}
+        GROUP BY 
+            PlayerId,
+            FirstName,
+            LastName,
+            Position,
+            TeamId,
+            TeamName,
+            TeamNickName
+        ORDER BY ${orderBy} ${orderDirection}
+        ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
+    `;
+
+    console.log(query);
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        request.input('teamId', teamId);
+
+        if (seasonId) request.input('seasonId', seasonId);
+        if (position) request.input('position', position);
+
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error('Error getting team vs all teams player statistics:', error);
+        await errorLogService.logDatabaseError(
+            error,
+            'playerStatisticsRepository.js',
+            null,
+            { function: 'getTeamVsAllTeamsPlayerStatistics', teamId, filters }
+        );
+        throw error;
+    }
+}
+
+module.exports.getTeamVsAllTeamsPlayerStatistics = getTeamVsAllTeamsPlayerStatistics;
