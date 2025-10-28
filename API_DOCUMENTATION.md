@@ -1042,6 +1042,272 @@ Get a summary of team vs team player statistics with key metrics.
 }
 ```
 
+---
+
+## 🎯 Team vs All Teams Player Statistics Endpoint
+
+### `GET /api/teams/{teamId}/vs-all/players`
+
+This endpoint provides aggregated player statistics for a team against all other teams. It shows all players from the specified team with their combined statistics across all opponents they've faced. This is particularly useful for understanding overall team performance and player averages across the entire league.
+
+> **Note:** The statistics shown are the **current team** for each player (determined by their most recent game). This ensures that even if a player has changed teams, their statistics are grouped under their current team for consistency.
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `teamId` | integer | ✅ Yes | Team ID to get statistics for |
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `seasonId` | integer | No | Season ID filter |
+| `position` | string | No | Position filter (PG, SG, SF, PF, C) |
+| `orderBy` | string | No | Field to order by (default: AveragePoints) |
+| `orderDirection` | string | No | Order direction: ASC or DESC (default: DESC) |
+| `limit` | integer | No | Limit number of results |
+
+#### Response Fields
+
+The response includes the same fields as the team vs team endpoint, but with aggregated values across all opponents:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `PlayerId` | integer | Player's unique identifier |
+| `FirstName` | string | Player's first name |
+| `LastName` | string | Player's last name |
+| `Position` | string | Player's position |
+| `TeamId` | integer | Player's current team ID |
+| `TeamName` | string | Player's current team name |
+| `TeamNickName` | string | Player's current team nickname |
+| `AveragePoints` | number | Average points across all opponents |
+| `AverageRebounds` | number | Average rebounds across all opponents |
+| `AverageAssists` | number | Average assists across all opponents |
+| `GamesOver20Points` | integer | Total games with 20+ points (across all opponents) |
+| `GamesOver25Points` | integer | Total games with 25+ points (across all opponents) |
+| `GamesOver30Points` | integer | Total games with 30+ points (across all opponents) |
+| `GamesPlayed` | integer | Total games played across all opponents |
+| `HomeGames` | integer | Total home games |
+| `AwayGames` | integer | Total away games |
+| ... | ... | (All other fields from team vs team endpoint) |
+
+#### Example Requests
+
+**1. Get Lakers players' statistics against all teams:**
+```bash
+GET /api/teams/1/vs-all/players
+```
+
+**2. Filter by season and position:**
+```bash
+GET /api/teams/1/vs-all/players?seasonId=2024&position=PG
+```
+
+**3. Order by rebounds and limit results:**
+```bash
+GET /api/teams/1/vs-all/players?orderBy=AverageRebounds&orderDirection=DESC&limit=10
+```
+
+#### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "teamId": 1,
+    "teamName": "Los Angeles Lakers",
+    "teamNickName": "Lakers",
+    "players": [
+      {
+        "PlayerId": 123,
+        "FirstName": "LeBron",
+        "LastName": "James",
+        "Position": "SF",
+        "TeamId": 1,
+        "TeamName": "Los Angeles Lakers",
+        "TeamNickName": "Lakers",
+        "AveragePoints": 25.2,
+        "AverageRebounds": 7.8,
+        "AverageAssists": 8.1,
+        "AverageSteals": 1.5,
+        "AverageBlocks": 0.7,
+        "AverageTurnovers": 3.5,
+        "AveragePersonalFouls": 2.3,
+        "AveragePointsPlusRebounds": 33.0,
+        "AveragePointsPlusReboundsPlusAssists": 41.1,
+        "AveragePointsPlusAssists": 33.3,
+        "AverageAssistsPlusRebounds": 15.9,
+        "AverageOverPoints": 25.2,
+        "GamesOver20Points": 45,
+        "GamesOver25Points": 28,
+        "GamesOver30Points": 15,
+        "GamesOver35Points": 8,
+        "GamesOver40Points": 3,
+        "GamesOver5Rebounds": 52,
+        "GamesOver10Rebounds": 18,
+        "GamesOver15Rebounds": 5,
+        "GamesOver5Assists": 48,
+        "GamesOver10Assists": 22,
+        "GamesOver15Assists": 8,
+        "AverageFieldGoalsMade": 9.8,
+        "AverageFieldGoalsAttempted": 18.2,
+        "AverageThreePointShotsMade": 2.3,
+        "AverageThreePointShotsAttempted": 6.1,
+        "AverageFreeThrowsMade": 5.8,
+        "AverageFreeThrowsAttempted": 7.1,
+        "FieldGoalPercentage": 53.8,
+        "ThreePointPercentage": 37.7,
+        "FreeThrowPercentage": 81.7,
+        "MaxPoints": 51,
+        "MinPoints": 8,
+        "MaxRebounds": 19,
+        "MinRebounds": 1,
+        "MaxAssists": 17,
+        "MinAssists": 2,
+        "GamesPlayed": 65,
+        "HomeGames": 33,
+        "AwayGames": 32,
+        "RecentAveragePoints": 24.8,
+        "RecentAverageRebounds": 7.5,
+        "RecentAverageAssists": 8.0,
+        "PointsStandardDeviation": 7.2,
+        "ReboundsStandardDeviation": 3.8,
+        "AssistsStandardDeviation": 4.1
+      }
+    ],
+    "totalPlayers": 15,
+    "filters": {}
+  }
+}
+```
+
+#### JavaScript Examples
+
+**1. Get team vs all teams statistics:**
+```javascript
+async function getTeamVsAllStats(teamId) {
+  try {
+    const response = await fetch(`/api/teams/${teamId}/vs-all/players`);
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('Team players:', data.data.players);
+      return data.data;
+    } else {
+      throw new Error('Failed to fetch team vs all stats');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getTeamVsAllStats(1); // Lakers vs all teams
+```
+
+**2. Filtered team vs all teams statistics:**
+```javascript
+async function getFilteredTeamVsAllStats(teamId, filters = {}) {
+  const params = new URLSearchParams();
+  
+  if (filters.seasonId) params.append('seasonId', filters.seasonId);
+  if (filters.position) params.append('position', filters.position);
+  if (filters.orderBy) params.append('orderBy', filters.orderBy);
+  if (filters.orderDirection) params.append('orderDirection', filters.orderDirection);
+  if (filters.limit) params.append('limit', filters.limit);
+
+  try {
+    const response = await fetch(`/api/teams/${teamId}/vs-all/players?${params}`);
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getFilteredTeamVsAllStats(1, {
+  seasonId: 2024,
+  position: 'SF',
+  orderBy: 'AveragePoints',
+  orderDirection: 'DESC',
+  limit: 5
+});
+```
+
+**3. React Hook for team vs all statistics:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function useTeamVsAllStats(teamId, filters = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            params.append(key, value);
+          }
+        });
+
+        const response = await fetch(`/api/teams/${teamId}/vs-all/players?${params}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError(new Error('Failed to fetch data'));
+        }
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (teamId) {
+      fetchData();
+    }
+  }, [teamId, JSON.stringify(filters)]);
+
+  return { data, loading, error };
+}
+
+// Usage
+function LakersStats() {
+  const { data, loading, error } = useTeamVsAllStats(1, {
+    position: 'PG',
+    orderBy: 'AverageAssists',
+    orderDirection: 'DESC'
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h1>{data.teamName} - All Teams Statistics</h1>
+      <ul>
+        {data.players.map(player => (
+          <li key={player.PlayerId}>
+            {player.FirstName} {player.LastName} - {player.AveragePoints} PPG
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
 #### JavaScript Examples
 
 **1. Basic team vs team statistics:**

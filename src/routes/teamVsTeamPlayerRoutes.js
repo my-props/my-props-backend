@@ -100,12 +100,14 @@ router.get('/:teamId1/vs/:teamId2/players', asyncHandler(async (req, res) => {
             data: {
                 team1: {
                     teamId: parseInt(teamId1),
-                    teamName: team1Players.length > 0 ? team1Players[0].EnemyTeamName : 'Unknown',
+                    teamName: team1Players.length > 0 ? team1Players[0].TeamName : 'Unknown',
+                    teamNickName: team1Players.length > 0 ? team1Players[0].TeamNickName : 'Unknown',
                     players: team1Players
                 },
                 team2: {
                     teamId: parseInt(teamId2),
-                    teamName: team2Players.length > 0 ? team2Players[0].EnemyTeamName : 'Unknown',
+                    teamName: team2Players.length > 0 ? team2Players[0].TeamName : 'Unknown',
+                    teamNickName: team2Players.length > 0 ? team2Players[0].TeamNickName : 'Unknown',
                     players: team2Players
                 },
                 totalPlayers: data.length,
@@ -206,6 +208,112 @@ router.get('/:teamId1/vs/:teamId2/players/summary', asyncHandler(async (req, res
     } catch (error) {
         await errorLogService.logRouteError(error, 'teamVsTeamPlayerRoutes.js', {
             route: '/:teamId1/vs/:teamId2/players/summary',
+            method: 'GET',
+            params: req.params,
+            query: req.query
+        });
+        throw error;
+    }
+}));
+
+/**
+ * @swagger
+ * /api/teams/{teamId}/vs-all/players:
+ *   get:
+ *     summary: Get all players from a team with their aggregated statistics against all teams
+ *     tags: [Teams, Players]
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Team ID
+ *       - in: query
+ *         name: seasonId
+ *         schema:
+ *           type: integer
+ *         description: Season ID filter
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *           enum: [PG, SG, SF, PF, C]
+ *         description: Position filter
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *         description: Field to order by (default: AveragePoints)
+ *       - in: query
+ *         name: orderDirection
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *         description: Order direction (default: DESC)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Limit number of results
+ *     responses:
+ *       200:
+ *         description: Team vs all teams player statistics retrieved successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:teamId/vs-all/players', asyncHandler(async (req, res) => {
+    try {
+        const { teamId } = req.params;
+        const {
+            seasonId,
+            position,
+            orderBy,
+            orderDirection,
+            limit
+        } = req.query;
+
+        // Validate required parameters
+        if (!teamId) {
+            throw new ValidationError('Team ID is required');
+        }
+
+        // Build filters object
+        const filters = {};
+        if (seasonId) filters.seasonId = parseInt(seasonId);
+        if (position) filters.position = position;
+        if (orderBy) filters.orderBy = orderBy;
+        if (orderDirection) filters.orderDirection = orderDirection;
+        if (limit) filters.limit = parseInt(limit);
+
+        // Get data from service
+        const data = await playerStatisticsService.getTeamVsAllTeamsPlayerStatistics(
+            parseInt(teamId),
+            filters
+        );
+
+        // Get team info from first player record
+        const teamName = data.length > 0 ? data[0].TeamName : 'Unknown';
+        const teamNickName = data.length > 0 ? data[0].TeamNickName : 'Unknown';
+
+        // Return response
+        res.status(200).json({
+            success: true,
+            data: {
+                teamId: parseInt(teamId),
+                teamName: teamName,
+                teamNickName: teamNickName,
+                players: data,
+                totalPlayers: data.length,
+                filters: filters
+            }
+        });
+
+    } catch (error) {
+        await errorLogService.logRouteError(error, 'teamVsTeamPlayerRoutes.js', {
+            route: '/:teamId/vs-all/players',
             method: 'GET',
             params: req.params,
             query: req.query

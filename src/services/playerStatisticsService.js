@@ -290,3 +290,34 @@ async function getTeamVsTeamPlayerStatistics(teamId1, teamId2, filters = {}) {
 }
 
 module.exports.getTeamVsTeamPlayerStatistics = getTeamVsTeamPlayerStatistics;
+
+/**
+ * Get team vs all teams player statistics
+ * @param {number} teamId - Team ID
+ * @param {Object} filters - Filter options
+ */
+async function getTeamVsAllTeamsPlayerStatistics(teamId, filters = {}) {
+  try {
+    if (!teamId) {
+      throw new Error("Team ID is required");
+    }
+
+    const data = await playerStatisticsRepository.getTeamVsAllTeamsPlayerStatistics(
+      teamId,
+      filters
+    );
+
+    return data;
+  } catch (error) {
+    console.error('Error getting team vs all teams player statistics:', error);
+    await errorLogService.logServiceError(
+      error,
+      'playerStatisticsService.js',
+      null,
+      { function: 'getTeamVsAllTeamsPlayerStatistics', teamId, filters }
+    );
+    throw error;
+  }
+}
+
+module.exports.getTeamVsAllTeamsPlayerStatistics = getTeamVsAllTeamsPlayerStatistics;
