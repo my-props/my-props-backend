@@ -1325,12 +1325,16 @@ function LakersStats() {
 ### `GET /api/teams/{teamId1}/vs/{teamId2}/position-stats`
 
 This endpoint provides comparative statistics between two basketball teams and their players, grouped by player position. It returns aggregated data for:
-- **Team 1 vs Team 2**: Statistics for Team 1's players against Team 2
-- **Team 2 vs Team 1**: Statistics for Team 2's players against Team 1
+- **Team 1 vs Team 2**: Statistics **for Team 1's players** (points scored, rebounds, etc.) **when playing against Team 2**, plus points **Team 1 conceded** to Team 2's players by position
+- **Team 2 vs Team 1**: Statistics **for Team 2's players** (points scored, rebounds, etc.) **when playing against Team 1**, plus points **Team 2 conceded** to Team 1's players by position
 - **Team 1 vs All**: Statistics for Team 1's players against all opponents
 - **Team 2 vs All**: Statistics for Team 2's players against all opponents
 
 All data is aggregated and ready for display without requiring additional calculations in the frontend.
+
+> **Important:** 
+> - `totalPointsScoredOver20Min` = Points **scored BY** the team's players (of that position)
+> - `avgPointsConceded` = Points **conceded BY** the team (allowed to opponent's players of that position)
 
 > **Perfect for:** Pre-game analysis, comparing team strengths by position, identifying positional advantages, and understanding defensive weaknesses against specific positions.
 
@@ -1461,8 +1465,8 @@ All data is aggregated and ready for display without requiring additional calcul
 | `opponentTeamId` | integer\|null | Opponent team ID (null for "vs All") |
 | `opponentTeamName` | string | Opponent team name ("All Opponents" for vs All) |
 | `opponentTeamNickName` | string | Opponent team nickname ("All" for vs All) |
-| `totalPointsScoredOver20Min` | integer | Total points scored by players of this position who played more than 20 minutes |
-| `avgPointsConceded` | number | Average points conceded by the team against players of this position |
+| `totalPointsScoredOver20Min` | integer | **Points scored BY** the team's players of this position (who played >20 minutes) against the opponent |
+| `avgPointsConceded` | number | **Points conceded BY** the team - average points allowed to the opponent's players of this position |
 | `totalRebounds` | integer | Total rebounds by position |
 | `totalTurnovers` | integer | Total turnovers by position |
 | `totalFouls` | integer | Total fouls by position |
@@ -1674,6 +1678,10 @@ function PositionComparison({ teamId1, teamId2 }) {
 ### `GET /api/teams/{teamId}/vs-all/position-stats`
 
 This endpoint provides statistics for a single team against all opponents, grouped by player position. Useful for understanding a team's overall positional performance across the entire league.
+
+> **Note:** 
+> - `totalPointsScoredOver20Min` = Total points **scored BY** the team's players of this position (who played >20 minutes) across all games
+> - `avgPointsConceded` = Average points **conceded BY** the team to all opponent players of this position
 
 #### Path Parameters
 
