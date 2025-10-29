@@ -1320,6 +1320,424 @@ function LakersStats() {
 
 ---
 
+## 📊 Team vs Team Position Comparative Statistics Endpoint
+
+### `GET /api/teams/{teamId1}/vs/{teamId2}/position-stats`
+
+This endpoint provides comparative statistics between two basketball teams and their players, grouped by player position. It returns aggregated data for:
+- **Team 1 vs Team 2**: Statistics for Team 1's players against Team 2
+- **Team 2 vs Team 1**: Statistics for Team 2's players against Team 1
+- **Team 1 vs All**: Statistics for Team 1's players against all opponents
+- **Team 2 vs All**: Statistics for Team 2's players against all opponents
+
+All data is aggregated and ready for display without requiring additional calculations in the frontend.
+
+> **Perfect for:** Pre-game analysis, comparing team strengths by position, identifying positional advantages, and understanding defensive weaknesses against specific positions.
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `teamId1` | integer | ✅ Yes | First team ID |
+| `teamId2` | integer | ✅ Yes | Second team ID |
+
+#### Response Structure
+
+```json
+{
+  "team1": {
+    "id": 1,
+    "vsTeam2": [
+      {
+        "position": "G",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": 2,
+        "opponentTeamName": "Golden State Warriors",
+        "opponentTeamNickName": "Warriors",
+        "totalPointsScoredOver20Min": 245,
+        "avgPointsConceded": 18.5,
+        "totalRebounds": 156,
+        "totalTurnovers": 89,
+        "totalFouls": 72,
+        "totalBlocks": 23,
+        "gamesPlayed": 4,
+        "avgPointsPerGame": 22.3,
+        "avgReboundsPerGame": 7.8,
+        "avgTurnoversPerGame": 4.5,
+        "avgFoulsPerGame": 3.6,
+        "avgBlocksPerGame": 1.2,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ],
+    "vsAll": [
+      {
+        "position": "G",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": null,
+        "opponentTeamName": "All Opponents",
+        "opponentTeamNickName": "All",
+        "totalPointsScoredOver20Min": 3456,
+        "avgPointsConceded": 19.2,
+        "totalRebounds": 2156,
+        "totalTurnovers": 1234,
+        "totalFouls": 987,
+        "totalBlocks": 312,
+        "gamesPlayed": 82,
+        "avgPointsPerGame": 23.5,
+        "avgReboundsPerGame": 8.2,
+        "avgTurnoversPerGame": 4.8,
+        "avgFoulsPerGame": 3.9,
+        "avgBlocksPerGame": 1.4,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ]
+  },
+  "team2": {
+    "id": 2,
+    "vsTeam1": [
+      {
+        "position": "G",
+        "teamId": 2,
+        "teamName": "Golden State Warriors",
+        "teamNickName": "Warriors",
+        "opponentTeamId": 1,
+        "opponentTeamName": "Los Angeles Lakers",
+        "opponentTeamNickName": "Lakers",
+        "totalPointsScoredOver20Min": 267,
+        "avgPointsConceded": 20.1,
+        "totalRebounds": 142,
+        "totalTurnovers": 95,
+        "totalFouls": 68,
+        "totalBlocks": 19,
+        "gamesPlayed": 4,
+        "avgPointsPerGame": 24.8,
+        "avgReboundsPerGame": 7.1,
+        "avgTurnoversPerGame": 4.8,
+        "avgFoulsPerGame": 3.4,
+        "avgBlocksPerGame": 0.9,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ],
+    "vsAll": [
+      {
+        "position": "G",
+        "teamId": 2,
+        "teamName": "Golden State Warriors",
+        "teamNickName": "Warriors",
+        "opponentTeamId": null,
+        "opponentTeamName": "All Opponents",
+        "opponentTeamNickName": "All",
+        "totalPointsScoredOver20Min": 3890,
+        "avgPointsConceded": 18.9,
+        "totalRebounds": 2432,
+        "totalTurnovers": 1345,
+        "totalFouls": 1098,
+        "totalBlocks": 278,
+        "gamesPlayed": 82,
+        "avgPointsPerGame": 25.2,
+        "avgReboundsPerGame": 8.5,
+        "avgTurnoversPerGame": 5.1,
+        "avgFoulsPerGame": 4.2,
+        "avgBlocksPerGame": 1.3,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `position` | string | Player position (G, F, C, etc.) |
+| `teamId` | integer | Team ID |
+| `teamName` | string | Full team name |
+| `teamNickName` | string | Team nickname |
+| `opponentTeamId` | integer\|null | Opponent team ID (null for "vs All") |
+| `opponentTeamName` | string | Opponent team name ("All Opponents" for vs All) |
+| `opponentTeamNickName` | string | Opponent team nickname ("All" for vs All) |
+| `totalPointsScoredOver20Min` | integer | Total points scored by players of this position who played more than 20 minutes |
+| `avgPointsConceded` | number | Average points conceded by the team against players of this position |
+| `totalRebounds` | integer | Total rebounds by position |
+| `totalTurnovers` | integer | Total turnovers by position |
+| `totalFouls` | integer | Total fouls by position |
+| `totalBlocks` | integer | Total blocks by position |
+| `gamesPlayed` | integer | Number of games played |
+| `avgPointsPerGame` | number | Average points per game |
+| `avgReboundsPerGame` | number | Average rebounds per game |
+| `avgTurnoversPerGame` | number | Average turnovers per game |
+| `avgFoulsPerGame` | number | Average fouls per game |
+| `avgBlocksPerGame` | number | Average blocks per game |
+| `lastUpdated` | string | Last update timestamp (ISO 8601) |
+
+#### Example Requests
+
+**1. Compare Lakers vs Warriors by position:**
+```bash
+GET /api/teams/1/vs/2/position-stats
+```
+
+#### Example Response
+
+```json
+{
+  "team1": {
+    "id": 1,
+    "vsTeam2": [
+      {
+        "position": "G",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": 2,
+        "opponentTeamName": "Golden State Warriors",
+        "opponentTeamNickName": "Warriors",
+        "totalPointsScoredOver20Min": 245,
+        "avgPointsConceded": 18.5,
+        "totalRebounds": 156,
+        "totalTurnovers": 89,
+        "totalFouls": 72,
+        "totalBlocks": 23,
+        "gamesPlayed": 4,
+        "avgPointsPerGame": 22.3,
+        "avgReboundsPerGame": 7.8,
+        "avgTurnoversPerGame": 4.5,
+        "avgFoulsPerGame": 3.6,
+        "avgBlocksPerGame": 1.2,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      },
+      {
+        "position": "F",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": 2,
+        "opponentTeamName": "Golden State Warriors",
+        "opponentTeamNickName": "Warriors",
+        "totalPointsScoredOver20Min": 312,
+        "avgPointsConceded": 21.3,
+        "totalRebounds": 198,
+        "totalTurnovers": 102,
+        "totalFouls": 85,
+        "totalBlocks": 34,
+        "gamesPlayed": 4,
+        "avgPointsPerGame": 28.5,
+        "avgReboundsPerGame": 9.2,
+        "avgTurnoversPerGame": 4.8,
+        "avgFoulsPerGame": 4.0,
+        "avgBlocksPerGame": 1.7,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      },
+      {
+        "position": "C",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": 2,
+        "opponentTeamName": "Golden State Warriors",
+        "opponentTeamNickName": "Warriors",
+        "totalPointsScoredOver20Min": 178,
+        "avgPointsConceded": 16.8,
+        "totalRebounds": 234,
+        "totalTurnovers": 76,
+        "totalFouls": 94,
+        "totalBlocks": 45,
+        "gamesPlayed": 4,
+        "avgPointsPerGame": 19.2,
+        "avgReboundsPerGame": 11.5,
+        "avgTurnoversPerGame": 3.8,
+        "avgFoulsPerGame": 4.7,
+        "avgBlocksPerGame": 2.3,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ],
+    "vsAll": [
+      {
+        "position": "G",
+        "teamId": 1,
+        "teamName": "Los Angeles Lakers",
+        "teamNickName": "Lakers",
+        "opponentTeamId": null,
+        "opponentTeamName": "All Opponents",
+        "opponentTeamNickName": "All",
+        "totalPointsScoredOver20Min": 3456,
+        "avgPointsConceded": 19.2,
+        "totalRebounds": 2156,
+        "totalTurnovers": 1234,
+        "totalFouls": 987,
+        "totalBlocks": 312,
+        "gamesPlayed": 82,
+        "avgPointsPerGame": 23.5,
+        "avgReboundsPerGame": 8.2,
+        "avgTurnoversPerGame": 4.8,
+        "avgFoulsPerGame": 3.9,
+        "avgBlocksPerGame": 1.4,
+        "lastUpdated": "2024-01-15T10:30:00.000Z"
+      }
+    ]
+  },
+  "team2": {
+    "id": 2,
+    "vsTeam1": [],
+    "vsAll": []
+  }
+}
+```
+
+#### JavaScript Examples
+
+**1. Get team vs team position statistics:**
+```javascript
+async function getTeamVsTeamPositionStats(teamId1, teamId2) {
+  try {
+    const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/position-stats`);
+    const data = await response.json();
+    
+    console.log('Team 1 vs Team 2:', data.team1.vsTeam2);
+    console.log('Team 1 vs All:', data.team1.vsAll);
+    console.log('Team 2 vs Team 1:', data.team2.vsTeam1);
+    console.log('Team 2 vs All:', data.team2.vsAll);
+    
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getTeamVsTeamPositionStats(1, 2); // Lakers vs Warriors
+```
+
+**2. React Hook for position statistics:**
+```javascript
+import { useState, useEffect } from 'react';
+
+function useTeamVsTeamPositionStats(teamId1, teamId2) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/teams/${teamId1}/vs/${teamId2}/position-stats`);
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (teamId1 && teamId2) {
+      fetchData();
+    }
+  }, [teamId1, teamId2]);
+
+  return { data, loading, error };
+}
+
+// Usage
+function PositionComparison({ teamId1, teamId2 }) {
+  const { data, loading, error } = useTeamVsTeamPositionStats(teamId1, teamId2);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h2>Position Comparison</h2>
+      {data.team1.vsTeam2.map(stat => (
+        <div key={stat.position}>
+          <h3>{stat.position}</h3>
+          <p>Points: {stat.totalPointsScoredOver20Min}</p>
+          <p>Avg Points Conceded: {stat.avgPointsConceded.toFixed(1)}</p>
+          <p>Rebounds: {stat.totalRebounds}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 🎯 Team vs All Position Statistics Endpoint
+
+### `GET /api/teams/{teamId}/vs-all/position-stats`
+
+This endpoint provides statistics for a single team against all opponents, grouped by player position. Useful for understanding a team's overall positional performance across the entire league.
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `teamId` | integer | ✅ Yes | Team ID to get statistics for |
+
+#### Response Structure
+
+The response is an array of position statistics:
+
+```json
+[
+  {
+    "position": "G",
+    "teamId": 1,
+    "teamName": "Los Angeles Lakers",
+    "teamNickName": "Lakers",
+    "opponentTeamId": null,
+    "opponentTeamName": "All Opponents",
+    "opponentTeamNickName": "All",
+    "totalPointsScoredOver20Min": 3456,
+    "avgPointsConceded": 19.2,
+    "totalRebounds": 2156,
+    "totalTurnovers": 1234,
+    "totalFouls": 987,
+    "totalBlocks": 312,
+    "gamesPlayed": 82,
+    "avgPointsPerGame": 23.5,
+    "avgReboundsPerGame": 8.2,
+    "avgTurnoversPerGame": 4.8,
+    "avgFoulsPerGame": 3.9,
+    "avgBlocksPerGame": 1.4,
+    "lastUpdated": "2024-01-15T10:30:00.000Z"
+  }
+]
+```
+
+#### Example Requests
+
+**1. Get Lakers position statistics vs all teams:**
+```bash
+GET /api/teams/1/vs-all/position-stats
+```
+
+#### JavaScript Example
+
+```javascript
+async function getTeamVsAllPositionStats(teamId) {
+  try {
+    const response = await fetch(`/api/teams/${teamId}/vs-all/position-stats`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Usage
+getTeamVsAllPositionStats(1); // Lakers vs all teams
+```
+
+---
+
 ## 🔄 Two Teams vs All Teams Endpoint
 
 ### `GET /api/teams/{teamId1}/and/{teamId2}/vs-all/players`
