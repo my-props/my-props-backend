@@ -515,4 +515,265 @@ GROUP BY
     SeasonId,
     SeasonYear;
 
+-- =====================================================
+-- 7. TEAM VS TEAM POSITION COMPARATIVE STATISTICS VIEW
+-- =====================================================
+-- Drop the view if it exists
+IF EXISTS (SELECT * FROM sys.views WHERE name = 'TeamVsTeamPositionStats')
+    DROP VIEW TeamVsTeamPositionStats;
+
+-- Create the view
+CREATE VIEW TeamVsTeamPositionStats AS
+WITH PlayerStatsWithMinutes AS (
+    -- Convert MinutesPlayed to numeric minutes
+    SELECT 
+        PS.*,
+        G.TeamHomeId,
+        G.TeamVisitorId,
+        CASE 
+            WHEN PS.MinutesPlayed IS NULL THEN 0
+            WHEN PS.MinutesPlayed LIKE '%:%' THEN 
+                CAST(LEFT(PS.MinutesPlayed, CHARINDEX(':', PS.MinutesPlayed) - 1) AS FLOAT) + 
+                (CAST(SUBSTRING(PS.MinutesPlayed, CHARINDEX(':', PS.MinutesPlayed) + 1, 2) AS FLOAT) / 60.0)
+            ELSE TRY_CAST(PS.MinutesPlayed AS FLOAT)
+        END AS MinutesPlayedNumeric
+    FROM PlayerStats PS
+    INNER JOIN Game G ON PS.GameId = G.Id
+    WHERE PS.Active = 1 
+      AND G.Active = 1
+      AND PS.Position IS NOT NULL
+),
+Team1VsTeam2 AS (
+    -- Team 1 vs Team 2: Statistics for Team 1's players against Team 2
+    SELECT 
+        G.Id AS GameId,
+        PS.TeamId AS TeamובדId,
+        CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END AS OpponentTeamId,
+        PS.Position,
+        PS.MinutesPlayedNumeric >= 20 AS PlayedMoreThan20Min,
+        PS.TotalPoints,
+        PS.TotalRebounds,
+        PS.Turnovers,
+        PS.PersonalFouls,
+        PS.Blocks
+    FROM PlayerStatsWithMinutes PS
+    INNER JOIN Game G ON PS.GameId = G.Id
+    WHERE (G.TeamHomeId IN (PS.TeamId, CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END)
+           AND G.TeamVisitorId IN (PS.TeamId, CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END))
+),
+Team1VsAll AS (
+    -- Team 1 vs All: Statistics for Team 1's players against all opponents
+    SELECT 
+        G.Id AS GameId,
+        PS.TeamId AS TeamId,
+        CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END AS OpponentTeamId,
+        PS.Position,
+        PS.MinutesPlayedNumeric >= 20 AS PlayedMoreThan20Min,
+        PS.TotalPoints,
+        PS.TotalRebounds,
+        PS.Turnovers,
+        PS.PersonalFouls,
+        PS.Blocks
+    FROM PlayerStatsWithMinutes PS
+    INNER JOIN Game G ON PS.GameId = G.Id
+),
+OpponentStatsByPosition AS (
+    -- Get opponent player stats by position for calculating points conceded
+    SELECT 
+        G.Id AS GameId,
+        PS.TeamId AS TeamId,
+        CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END AS OpponentTeamId,
+        OPS.Position AS OpponentPosition,
+        OPS.TotalPoints AS OpponentPoints
+    FROM PlayerStatsWithMinutes PS
+    INNER JOIN Game G ON PS.GameId = G.Id
+    INNER JOIN PlayerStats OPS ON OPS.GameId = G.Id 
+        AND OPS.TeamId = CASE WHEN PS.TeamId = G.TeamHomeId THEN G.TeamVisitorId ELSE G.TeamHomeId END
+        AND OPS.Active = 1
+    WHERE PS.Active = 1
+)
+SELECT 
+    -- Matchup identification
+    1 AS TeamId1,
+    2 AS TeamId2,
+    'Team1VsTeam2' AS MatchupType,
+    
+    -- Team information
+    T1.Id AS TeamId,
+    T1.Name AS TeamName,
+    T1.NickName AS TeamNickName,
+    T2.Id AS OpponentTeamId,
+    T2.Name AS OpponentTeamName,
+    T2.NickName AS OpponentTeamNickName,
+    
+    -- Position grouping
+    ISNULL(PS.Position, 'Unknown') AS Position,
+    
+    -- Points scored by players of this position who played more than 20 minutes
+    SUM(CASE WHEN PS.PlayedMoreThan20Min = 1 THEN PS.TotalPoints ELSE 0 END) AS TotalPointsScoredOver20Min,
+    
+    -- Average points conceded by team against players of this position
+    ISNULL(AVG(CAST(OPP.OpponentPoints AS FLOAT)), 0) AS AvgPointsConceded,
+    
+    -- Aggregated statistics by position
+    SUM(PS.TotalRebounds) AS TotalRebounds,
+    SUM(PS.Turnovers) AS TotalTurnovers,
+    SUM(PS.PersonalFouls) AS TotalFouls,
+    SUM(PS.Blocks) AS TotalBlocks,
+    
+    -- Additional metrics
+    COUNT(DISTINCT PS.GameId) AS GamesPlayed,
+    AVG(CAST(PS.TotalPoints AS FLOAT)) AS AvgPointsPerGame,
+    AVG(CAST(PS.TotalRebounds AS FLOAT)) AS AvgReboundsPerGame,
+    AVG(CAST(PS.Turnovers AS FLOAT)) AS AvgTurnoversPerGame,
+    AVG(CAST(PS.PersonalFouls AS FLOAT)) AS AvgFoulsPerGame,
+    AVG(CAST(PS.Blocks AS FLOAT)) AS AvgBlocksPerGame,
+    
+    GETDATE() AS LastUpdated
+FROM Team1VsTeam2 PS
+INNER JOIN Team T1 ON PS.TeamId = T1.Id
+INNER JOIN Team T2 ON PS.OpponentTeamId = T2.Id
+LEFT JOIN OpponentStatsByPosition OPP ON OPP.GameId = PS.GameId 
+    AND OSP.TeamId = PS.TeamId 
+    AND OSP.OpponentPosition = PS.Position
+WHERE T1.Active = 1 AND T2.Active = 1
+GROUP BY 
+    T1.Id, T1.Name, T1.NickName,
+    T2.Id, T2.Name, T2.NickName,
+    PS.Position
+
+UNION ALL
+
+-- Team 2 vs Team 1: Statistics for Team 2's players against Team 1
+SELECT 
+    1 AS TeamId1,
+    2 AS TeamId2,
+    'Team2VsTeam1' AS MatchupType,
+    
+    T2.Id AS TeamId,
+    T2.Name AS TeamName,
+    T2.NickName AS TeamNickName,
+    T1.Id AS OpponentTeamId,
+    T1.Name AS OpponentTeamName,
+    T1.NickName AS OpponentTeamNickName,
+    
+    ISNULL(PS.Position, 'Unknown') AS Position,
+    
+    SUM(CASE WHEN PS.PlayedMoreThan20Min = 1 THEN PS.TotalPoints ELSE 0 END) AS TotalPointsScoredOver20Min,
+    ISNULL(AVG(CAST(OPP.OpponentPoints AS FLOAT)), 0) AS AvgPointsConceded,
+    
+    SUM(PS.TotalRebounds) AS TotalRebounds,
+    SUM(PS.Turnovers) AS TotalTurnovers,
+    SUM(PS.PersonalFouls) AS TotalFouls,
+    SUM(PS.Blocks) AS TotalBlocks,
+    
+    COUNT(DISTINCT PS.GameId) AS GamesPlayed,
+    AVG(CAST(PS.TotalPoints AS FLOAT)) AS AvgPointsPerGame,
+    AVG(CAST(PS.TotalRebounds AS FLOAT)) AS AvgReboundsPerGame,
+    AVG(CAST(PS.Turnovers AS FLOAT)) AS AvgTurnoversPerGame,
+    AVG(CAST(PS.PersonalFouls AS FLOAT)) AS AvgFoulsPerGame,
+    AVG(CAST(PS.Blocks AS FLOAT)) AS AvgBlocksPerGame,
+    
+    GETDATE() AS LastUpdated
+FROM Team1VsTeam2 PS
+INNER JOIN Team T1 ON PS.OpponentTeamId = T1.Id
+INNER JOIN Team T2 ON PS.TeamId = T2.Id
+LEFT JOIN OpponentStatsByPosition OPP ON OPP.GameId = PS.GameId 
+    AND OPP.TeamId = PS.OpponentTeamId
+    AND OPP.OpponentPosition = PS.Position
+WHERE T1.Active = 1 AND T2.Active = 1
+  AND PS.TeamId = T2.Id
+GROUP BY 
+    T2.Id, T2.Name, T2.NickName,
+    T1.Id, T1.Name, T1.NickName,
+    PS.Position
+
+UNION ALL
+
+-- Team 1 vs All: Statistics for Team 1's players against all opponents
+SELECT 
+    PS.TeamId AS TeamId1,
+    NULL AS TeamId2,
+    'Team1VsAll' AS MatchupType,
+    
+    T1.Id AS TeamId,
+    T1.Name AS TeamName,
+    T1.NickName AS TeamNickName,
+    NULL AS OpponentTeamId,
+    'All Opponents' AS OpponentTeamName,
+    'All' AS OpponentTeamNickName,
+    
+    ISNULL(PS.Position, 'Unknown') AS Position,
+    
+    SUM(CASE WHEN PS.PlayedMoreThan20Min = 1 THEN PS.TotalPoints ELSE 0 END) AS TotalPointsScoredOver20Min,
+    ISNULL(AVG(CAST(OPP.OpponentPoints AS FLOAT)), 0) AS AvgPointsConceded,
+    
+    SUM(PS.TotalRebounds) AS TotalRebounds,
+    SUM(PS.Turnovers) AS TotalTurnovers,
+    SUM(PS.PersonalFouls) AS TotalFouls,
+    SUM(PS.Blocks) AS TotalBlocks,
+    
+    COUNT(DISTINCT PS.GameId) AS GamesPlayed,
+    AVG(CAST(PS.TotalPoints AS FLOAT)) AS AvgPointsPerGame,
+    AVG(CAST(PS.TotalRebounds AS FLOAT)) AS AvgReboundsPerGame,
+    AVG(CAST(PS.Turnovers AS FLOAT)) AS AvgTurnoversPerGame,
+    AVG(CAST(PS.PersonalFouls AS FLOAT)) AS AvgFoulsPerGame,
+    AVG(CAST(PS.Blocks AS FLOAT)) AS AvgBlocksPerGame,
+    
+    GETDATE() AS LastUpdated
+FROM Team1VsAll PS
+INNER JOIN Team T1 ON PS.TeamId = T1.Id
+LEFT JOIN OpponentStatsByPosition OPP ON OPP.GameId = PS.GameId 
+    AND OPP.TeamId = PS.TeamId
+    AND OPP.OpponentPosition = PS.Position
+WHERE T1.Active = 1
+GROUP BY 
+    PS.TeamId,
+    T1.Id, T1.Name, T1.NickName,
+    PS.Position
+
+UNION ALL
+
+-- Team 2 vs All: Statistics for Team 2's players against all opponents
+SELECT 
+    PS.TeamId AS TeamId2,
+    NULL AS TeamId1,
+    'Team2VsAll' AS MatchupType,
+    
+    T2.Id AS TeamId,
+    T2.Name AS TeamName,
+    T2.NickName AS TeamNickName,
+    NULL AS OpponentTeamId,
+    'All Opponents' AS OpponentTeamName,
+    'All' AS OpponentTeamNickName,
+    
+    ISNULL(PS.Position, 'Unknown') AS Position,
+    
+    SUM(CASE WHEN PS.PlayedMoreThan20Min = 1 THEN PS.TotalPoints ELSE 0 END) AS TotalPointsScoredOver20Min,
+    ISNULL(AVG(CAST(OPP.OpponentPoints AS FLOAT)), 0) AS AvgPointsConceded,
+    
+    SUM(PS.TotalRebounds) AS TotalRebounds,
+    SUM(PS.Turnovers) AS TotalTurnovers,
+    SUM(PS.PersonalFouls) AS TotalFouls,
+    SUM(PS.Blocks) AS TotalBlocks,
+    
+    COUNT(DISTINCT PS.GameId) AS GamesPlayed,
+    AVG(CAST(PS.TotalPoints AS FLOAT)) AS AvgPointsPerGame,
+    AVG(CAST(PS.TotalRebounds AS FLOAT)) AS AvgReboundsPerGame,
+    AVG(CAST(PS.Turnovers AS FLOAT)) AS AvgTurnoversPerGame,
+    AVG(CAST(PS.PersonalFouls AS FLOAT)) AS AvgFoulsPerGame,
+    AVG(CAST(PS.Blocks AS FLOAT)) AS AvgBlocksPerGame,
+    
+    GETDATE() AS LastUpdated
+FROM Team1VsAll PS
+INNER JOIN Team T2 ON PS.TeamId = T2.Id
+LEFT JOIN OpponentStatsByPosition OPP ON OPP.GameId = PS.GameId 
+    AND OPP.TeamId = PS.TeamId
+    AND OPP.OpponentPosition = PS.Position
+WHERE T2.Active = 1
+GROUP BY 
+    PS.TeamId,
+    T2.Id, T2.Name, T2.NickName,
+    PS.Position;
+
 PRINT 'Materialized views created successfully!';
