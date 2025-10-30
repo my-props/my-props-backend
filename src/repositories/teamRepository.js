@@ -2,7 +2,7 @@ const { getPool } = require("../config/database");
 const errorLogService = require("../services/errorLogService");
 
 async function getAllTeams() {
-  const query = `SELECT Id, Name from Team where Active = 1`;
+  const query = `SELECT Id, Name, TeamLogoUrl from Team where Active = 1`;
 
   try {
     const pool = await getPool();

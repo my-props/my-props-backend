@@ -26,7 +26,6 @@ async function getGamesFromLastDays(days) {
     if (rows.length === 0) {
       throw new Error("No matchup data found for the provided dates")
     }
-    console.log(rows)
     return rows
   } catch (error) {
     console.error("Error getting past games:", error)
@@ -59,14 +58,18 @@ function transformGame(game) {
       name: game.HomeTeamName,
       nickName: game.HomeTeamNickName,
       code: game.HomeTeamCode,
-      city: game.HomeTeamCity
+      city: game.HomeTeamCity,
+      logoUrl: game.HomeTeamLogoUrl,
+      conference: game.HomeTeamConference
     },
     visitorTeam: {
       id: game.VisitorTeamId,
       name: game.VisitorTeamName,
       nickName: game.VisitorTeamNickName,
       code: game.VisitorTeamCode,
-      city: game.VisitorTeamCity
+      city: game.VisitorTeamCity,
+      logoUrl: game.VisitorTeamLogoUrl,
+      conference: game.VisitorTeamConference
     }
   }
 

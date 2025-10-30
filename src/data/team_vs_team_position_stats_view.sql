@@ -97,9 +97,11 @@ SELECT
     PS.TeamId AS TeamId,
     T1.Name AS TeamName,
     T1.NickName AS TeamNickName,
+    T1.TeamLogoUrl AS TeamLogoUrl,
     PS.OpponentTeamId AS OpponentTeamId,
     T2.Name AS OpponentTeamName,
     T2.NickName AS OpponentTeamNickName,
+    T2.TeamLogoUrl AS OpponentTeamLogoUrl,
     
     -- Position grouping
     ISNULL(PS.Position, 'Unknown') AS Position,
@@ -135,8 +137,8 @@ WHERE T1.Active = 1 AND T2.Active = 1
 GROUP BY 
     PS.TeamId,
     PS.OpponentTeamId,
-    T1.Id, T1.Name, T1.NickName,
-    T2.Id, T2.Name, T2.NickName,
+    T1.Id, T1.Name, T1.NickName, T1.TeamLogoUrl,
+    T2.Id, T2.Name, T2.NickName, T2.TeamLogoUrl,
     PS.Position
 
 UNION ALL
@@ -150,9 +152,11 @@ SELECT
     PS.OpponentTeamId AS TeamId,
     T2.Name AS TeamName,
     T2.NickName AS TeamNickName,
+    T2.TeamLogoUrl AS TeamLogoUrl,
     PS.TeamId AS OpponentTeamId,
     T1.Name AS OpponentTeamName,
     T1.NickName AS OpponentTeamNickName,
+    T1.TeamLogoUrl AS OpponentTeamLogoUrl,
     
     ISNULL(PS.Position, 'Unknown') AS Position,
     
@@ -182,8 +186,8 @@ WHERE T1.Active = 1 AND T2.Active = 1
 GROUP BY 
     PS.TeamId,
     PS.OpponentTeamId,
-    T2.Id, T2.Name, T2.NickName,
-    T1.Id, T1.Name, T1.NickName,
+    T2.Id, T2.Name, T2.NickName, T2.TeamLogoUrl,
+    T1.Id, T1.Name, T1.NickName, T1.TeamLogoUrl,
     PS.Position
 
 UNION ALL
@@ -197,9 +201,11 @@ SELECT
     PS.TeamId AS TeamId,
     T1.Name AS TeamName,
     T1.NickName AS TeamNickName,
+    T1.TeamLogoUrl AS TeamLogoUrl,
     NULL AS OpponentTeamId,
     'All Opponents' AS OpponentTeamName,
     'All' AS OpponentTeamNickName,
+    NULL AS OpponentTeamLogoUrl,
     
     ISNULL(PS.Position, 'Unknown') AS Position,
     
@@ -227,23 +233,25 @@ LEFT JOIN OpponentPointsByPosition OPP ON OPP.GameId = PS.GameId
 WHERE T1.Active = 1
 GROUP BY 
     PS.TeamId,
-    T1.Id, T1.Name, T1.NickName,
+    T1.Id, T1.Name, T1.NickName, T1.TeamLogoUrl,
     PS.Position
 
 UNION ALL
 
 -- Team 2 vs All: Statistics for Team 2's players against all opponents
 SELECT 
-    PS.TeamId AS TeamId2,
-    NULL AS TeamId1,
+    PS.TeamId AS TeamId1,
+    NULL AS TeamId2,
     'Team2VsAll' AS MatchupType,
     
     PS.TeamId AS TeamId,
     T2.Name AS TeamName,
     T2.NickName AS TeamNickName,
+    T2.TeamLogoUrl AS TeamLogoUrl,
     NULL AS OpponentTeamId,
     'All Opponents' AS OpponentTeamName,
     'All' AS OpponentTeamNickName,
+    NULL AS OpponentTeamLogoUrl,
     
     ISNULL(PS.Position, 'Unknown') AS Position,
     
@@ -271,7 +279,7 @@ LEFT JOIN OpponentPointsByPosition OPP ON OPP.GameId = PS.GameId
 WHERE T2.Active = 1
 GROUP BY 
     PS.TeamId,
-    T2.Id, T2.Name, T2.NickName,
+    T2.Id, T2.Name, T2.NickName, T2.TeamLogoUrl,
     PS.Position;
 GO
 

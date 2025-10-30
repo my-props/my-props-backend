@@ -1011,8 +1011,6 @@ async function getTeamVsAllTeamsPlayerStatistics(teamId, filters = {}) {
         ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
     `;
 
-    console.log(query);
-
     try {
         const pool = await getPool();
         const request = pool.request();
