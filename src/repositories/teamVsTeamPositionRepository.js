@@ -52,10 +52,10 @@ async function getTeamVsTeamPositionStats(teamId1, teamId2) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting team vs team position stats:', error);
-    await errorLogService.logDatabaseError(error, 'teamVsTeamPositionRepository.js', null, { 
-      function: 'getTeamVsTeamPositionStats', 
-      teamId1, 
-      teamId2 
+    await errorLogService.logDatabaseError(error, 'teamVsTeamPositionRepository.js', null, {
+      function: 'getTeamVsTeamPositionStats',
+      teamId1,
+      teamId2
     });
     throw error;
   }
@@ -95,7 +95,7 @@ async function getTeamVsAllPositionStats(teamId) {
       AvgBlocksPerGame,
       LastUpdated
     FROM TeamVsTeamPositionStats
-    WHERE TeamId1 = @teamId AND TeamId2 IS NULL
+    WHERE TeamId1 = @teamId AND TeamId2 != @teamId
     ORDER BY MatchupType, Position
   `;
 
@@ -107,9 +107,9 @@ async function getTeamVsAllPositionStats(teamId) {
     return result.recordset;
   } catch (error) {
     console.error('Error getting team vs all position stats:', error);
-    await errorLogService.logDatabaseError(error, 'teamVsTeamPositionRepository.js', null, { 
-      function: 'getTeamVsAllPositionStats', 
-      teamId 
+    await errorLogService.logDatabaseError(error, 'teamVsTeamPositionRepository.js', null, {
+      function: 'getTeamVsAllPositionStats',
+      teamId
     });
     throw error;
   }

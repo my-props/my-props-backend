@@ -40,8 +40,8 @@ WITH PlayerStatsWithMinutes AS (
         PS.Turnovers,
         PS.PersonalFouls,
         PS.Blocks,
-        G.TeamHomeId,
-        G.TeamVisitorId,
+        G.TeamHomeId AS TeamHomeId,
+        G.TeamVisitorId AS TeamVisitorId,
         CASE 
             WHEN PS.MinutesPlayed IS NULL THEN 0
             WHEN PS.MinutesPlayed LIKE '%:%' THEN 
